@@ -1,0 +1,554 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		F69344A62D768B2F00DDB88D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F693448C2D768B2D00DDB88D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F69344932D768B2D00DDB88D;
+			remoteInfo = KerbalModManager;
+		};
+		F69344B02D768B2F00DDB88D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F693448C2D768B2D00DDB88D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F69344932D768B2D00DDB88D;
+			remoteInfo = KerbalModManager;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F69344942D768B2D00DDB88D /* KerbalModManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerbalModManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F69344A52D768B2F00DDB88D /* KerbalModManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerbalModManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F69344AF2D768B2F00DDB88D /* KerbalModManagerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerbalModManagerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F69344962D768B2D00DDB88D /* KerbalModManager */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KerbalModManager;
+			sourceTree = "<group>";
+		};
+		F69344A82D768B2F00DDB88D /* KerbalModManagerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KerbalModManagerTests;
+			sourceTree = "<group>";
+		};
+		F69344B22D768B2F00DDB88D /* KerbalModManagerUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KerbalModManagerUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F69344912D768B2D00DDB88D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F69344A22D768B2F00DDB88D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F69344AC2D768B2F00DDB88D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F693448B2D768B2D00DDB88D = {
+			isa = PBXGroup;
+			children = (
+				F69344962D768B2D00DDB88D /* KerbalModManager */,
+				F69344A82D768B2F00DDB88D /* KerbalModManagerTests */,
+				F69344B22D768B2F00DDB88D /* KerbalModManagerUITests */,
+				F69344952D768B2D00DDB88D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F69344952D768B2D00DDB88D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F69344942D768B2D00DDB88D /* KerbalModManager.app */,
+				F69344A52D768B2F00DDB88D /* KerbalModManagerTests.xctest */,
+				F69344AF2D768B2F00DDB88D /* KerbalModManagerUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F69344932D768B2D00DDB88D /* KerbalModManager */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F69344B92D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManager" */;
+			buildPhases = (
+				F69344902D768B2D00DDB88D /* Sources */,
+				F69344912D768B2D00DDB88D /* Frameworks */,
+				F69344922D768B2D00DDB88D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F69344962D768B2D00DDB88D /* KerbalModManager */,
+			);
+			name = KerbalModManager;
+			packageProductDependencies = (
+			);
+			productName = KerbalModManager;
+			productReference = F69344942D768B2D00DDB88D /* KerbalModManager.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F69344A42D768B2F00DDB88D /* KerbalModManagerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F69344BC2D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManagerTests" */;
+			buildPhases = (
+				F69344A12D768B2F00DDB88D /* Sources */,
+				F69344A22D768B2F00DDB88D /* Frameworks */,
+				F69344A32D768B2F00DDB88D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F69344A72D768B2F00DDB88D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F69344A82D768B2F00DDB88D /* KerbalModManagerTests */,
+			);
+			name = KerbalModManagerTests;
+			packageProductDependencies = (
+			);
+			productName = KerbalModManagerTests;
+			productReference = F69344A52D768B2F00DDB88D /* KerbalModManagerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F69344AE2D768B2F00DDB88D /* KerbalModManagerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F69344BF2D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManagerUITests" */;
+			buildPhases = (
+				F69344AB2D768B2F00DDB88D /* Sources */,
+				F69344AC2D768B2F00DDB88D /* Frameworks */,
+				F69344AD2D768B2F00DDB88D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F69344B12D768B2F00DDB88D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F69344B22D768B2F00DDB88D /* KerbalModManagerUITests */,
+			);
+			name = KerbalModManagerUITests;
+			packageProductDependencies = (
+			);
+			productName = KerbalModManagerUITests;
+			productReference = F69344AF2D768B2F00DDB88D /* KerbalModManagerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F693448C2D768B2D00DDB88D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					F69344932D768B2D00DDB88D = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					F69344A42D768B2F00DDB88D = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = F69344932D768B2D00DDB88D;
+					};
+					F69344AE2D768B2F00DDB88D = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = F69344932D768B2D00DDB88D;
+					};
+				};
+			};
+			buildConfigurationList = F693448F2D768B2D00DDB88D /* Build configuration list for PBXProject "KerbalModManager" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F693448B2D768B2D00DDB88D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F69344952D768B2D00DDB88D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F69344932D768B2D00DDB88D /* KerbalModManager */,
+				F69344A42D768B2F00DDB88D /* KerbalModManagerTests */,
+				F69344AE2D768B2F00DDB88D /* KerbalModManagerUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F69344922D768B2D00DDB88D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F69344A32D768B2F00DDB88D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F69344AD2D768B2F00DDB88D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F69344902D768B2D00DDB88D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F69344A12D768B2F00DDB88D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F69344AB2D768B2F00DDB88D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F69344A72D768B2F00DDB88D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F69344932D768B2D00DDB88D /* KerbalModManager */;
+			targetProxy = F69344A62D768B2F00DDB88D /* PBXContainerItemProxy */;
+		};
+		F69344B12D768B2F00DDB88D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F69344932D768B2D00DDB88D /* KerbalModManager */;
+			targetProxy = F69344B02D768B2F00DDB88D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		F69344B72D768B2F00DDB88D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F69344B82D768B2F00DDB88D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		F69344BA2D768B2F00DDB88D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KerbalModManager/KerbalModManager.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"KerbalModManager/Preview Content\"";
+				DEVELOPMENT_TEAM = 46T8W6J2U7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManager;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F69344BB2D768B2F00DDB88D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KerbalModManager/KerbalModManager.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"KerbalModManager/Preview Content\"";
+				DEVELOPMENT_TEAM = 46T8W6J2U7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManager;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F69344BD2D768B2F00DDB88D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46T8W6J2U7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManagerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KerbalModManager.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KerbalModManager";
+			};
+			name = Debug;
+		};
+		F69344BE2D768B2F00DDB88D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46T8W6J2U7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManagerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KerbalModManager.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KerbalModManager";
+			};
+			name = Release;
+		};
+		F69344C02D768B2F00DDB88D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46T8W6J2U7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManagerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = KerbalModManager;
+			};
+			name = Debug;
+		};
+		F69344C12D768B2F00DDB88D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46T8W6J2U7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManagerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = KerbalModManager;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F693448F2D768B2D00DDB88D /* Build configuration list for PBXProject "KerbalModManager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F69344B72D768B2F00DDB88D /* Debug */,
+				F69344B82D768B2F00DDB88D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F69344B92D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F69344BA2D768B2F00DDB88D /* Debug */,
+				F69344BB2D768B2F00DDB88D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F69344BC2D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManagerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F69344BD2D768B2F00DDB88D /* Debug */,
+				F69344BE2D768B2F00DDB88D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F69344BF2D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManagerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F69344C02D768B2F00DDB88D /* Debug */,
+				F69344C12D768B2F00DDB88D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F693448C2D768B2D00DDB88D /* Project object */;
+}
