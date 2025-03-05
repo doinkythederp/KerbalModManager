@@ -1,0 +1,3 @@
+[submodule "CKAN-Server"]
+	path = CKAN-Server
+	url = https://github.com/doinkythederp/CKAN-Server.git
