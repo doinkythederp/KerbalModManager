@@ -26,14 +26,34 @@ private let columns: [GridItem] = [
 
 struct InstanceList: View {
     @Binding var instances: [GameInstance]
+    var navigate: (GameInstance) -> Void
+    var cancel: () -> Void
+
+    init(
+        instances: Binding<[GameInstance]>,
+        onNavigate: @escaping (GameInstance) -> Void = { _ in },
+        onCancel: @escaping () -> Void = {}
+    ) {
+        self._instances = instances
+        self.navigate = onNavigate
+        self.cancel = onCancel
+    }
+
     @State private var selection: GameInstance?
     @State private var allowKeyboardNavigation = true
 
     @Environment(\.layoutDirection) private var layoutDirection
-    @Environment(NavigationModel.self) private var navigationModel
 
     var body: some View {
         container { geometryProxy, scrollViewProxy in
+            HStack {
+                Text("Choose an Instance")
+                Spacer()
+            }
+            .font(.system(size: 35).bold())
+            .padding(.horizontal)
+            .padding(.top)
+
             LazyVGrid(columns: columns) {
                 ForEach($instances) { $instance in
                     InstanceTile(
@@ -46,7 +66,7 @@ struct InstanceList: View {
                     .onTapGesture { selection = instance }
                     .simultaneousGesture(
                         TapGesture(count: 2).onEnded {
-                            navigate(to: instance)
+                            navigate(instance)
                         }
                     )
                 }
@@ -55,14 +75,6 @@ struct InstanceList: View {
             .focusable()
             .focusEffectDisabled()
             .focusedValue(\.selectedGameInstance, $selection)
-            .onKeyPress(.return, action: {
-                if allowKeyboardNavigation, let selection {
-                    navigate(to: selection)
-                    return .handled
-                } else {
-                    return .ignored
-                }
-            })
             .onKeyPress(.escape) {
                 guard allowKeyboardNavigation else {
                     return .ignored
@@ -91,6 +103,31 @@ struct InstanceList: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 0) {
+                Divider()
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        cancel()
+                    }
+                    Button {
+                        if let selection {
+                            navigate(selection)
+                        }
+                    } label: {
+                        Text("Select").frame(minWidth: 60)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(selection == nil)
+                    .keyboardShortcut(.defaultAction)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+            }
+            .background()
+        }
+        .navigationBarBackButtonHidden()
     }
 
     // Selection logic based on:
@@ -164,13 +201,9 @@ struct InstanceList: View {
         return .ignored
     }
 
-    private func navigate(to instance: GameInstance) {
-        navigationModel.selectedInstanceName = instance.name
-    }
-
     // MARK: Grid layout
 
-    private static let spacing: CGFloat = 10
+    private static let spacing: CGFloat = 5
 
     private var columns: [GridItem] {
         [GridItem(.adaptive(minimum: InstanceTile.size), spacing: 0)]
@@ -180,23 +213,28 @@ struct InstanceList: View {
 #Preview {
     @Previewable @State var instances = [
         GameInstance(
-            name: "Global Kerbal Space Program", directory: "/Applications/Kerbal Space Program"),
+            name: "Global Kerbal Space Program",
+            directory: "/Applications/Kerbal Space Program"),
         GameInstance(
             name: "Steam KSP",
-            directory: FilePath("/Users/\(NSUserName())/Library/Application Support/Steam/SteamApps/common/Kerbal Space Program")
+            directory: FilePath(
+                "/Users/\(NSUserName())/Library/Application Support/Steam/SteamApps/common/Kerbal Space Program"
+            )
         ),
     ]
-    @Previewable @State var navigationModel = NavigationModel()
+    @Previewable @State var selection: GameInstance?
 
-    if let selection = navigationModel.selectedInstanceName {
-        Text(selection)
+    if let instance = selection {
+        Text(instance.name)
         Button("Back") {
-            navigationModel.selectedInstanceName = nil
+            selection = nil
         }
     } else {
-        InstanceList(instances: $instances)
+        InstanceList(instances: $instances) {
+            selection = $0
+        }
             .frame(minWidth: 500)
-            .environment(navigationModel)
     }
 
 }
+

@@ -114,7 +114,7 @@ struct InstanceTile: View {
         .clipShape(.rect(cornerRadius: 7))
         .padding(5)
         .fixedSize()
-        .tint(isSelected ? .accentColor : .gray)
+        .disabled(!isSelected)
     }
 
     var body: some View {

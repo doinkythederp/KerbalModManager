@@ -7,20 +7,24 @@
 
 import SwiftUI
 import Observation
+import CkanAPI
 
-@Observable final class NavigationModel: Codable {
-    var selectedInstanceName: String? = nil
+enum NavigationDestination: Hashable {
+    case modBrowser(GameInstance)
+}
 
-    func jsonData() -> Data? {
-        try? JSONEncoder().encode(self)
-    }
+@Observable final class NavigationModel {
+    var selectedInstance: GameInstance? = nil
+    var path: [NavigationDestination] = []
 
-    init(selectedInstanceName: String? = nil) {
-        self.selectedInstanceName = selectedInstanceName
-    }
+    init() {}
 
-    static func from(jsonData: Data?) -> NavigationModel {
-        guard let jsonData else { return NavigationModel() }
-        return (try? JSONDecoder().decode(NavigationModel.self, from: jsonData)) ?? NavigationModel()
-    }
+//    func jsonData() -> Data? {
+//        try? JSONEncoder().encode(self)
+//    }
+//
+//    static func from(jsonData: Data?) -> NavigationModel {
+//        guard let jsonData else { return NavigationModel() }
+//        return (try? JSONDecoder().decode(NavigationModel.self, from: jsonData)) ?? NavigationModel()
+//    }
 }
