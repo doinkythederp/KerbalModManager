@@ -34,7 +34,7 @@ public struct GameInstance: Sendable, Identifiable, Hashable {
         self.isDefault = isDefault
     }
 
-    init(from ckan: Ckan_Instance) throws {
+    init(from ckan: Ckan_Instance) throws(CkanError) {
         name = ckan.name
         directory = FilePath(ckan.directory)
         guard let game = Game(id: ckan.gameID) else {

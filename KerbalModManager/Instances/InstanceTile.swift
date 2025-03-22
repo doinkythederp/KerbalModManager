@@ -167,8 +167,8 @@ struct InstanceTile: View {
 }
 
 extension InstanceTile {
-    static let size: CGFloat = 200
-    static let selectionStrokeWidth: CGFloat = 3
+    nonisolated static let size: CGFloat = 200
+    nonisolated static let selectionStrokeWidth: CGFloat = 3
 }
 
 

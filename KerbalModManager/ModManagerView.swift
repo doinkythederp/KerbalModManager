@@ -13,6 +13,9 @@ struct ModManagerView: View, CkanActionDelegate {
     @State private var instances: [GameInstance] = []
     @State private var navigationModel = NavigationModel()
 
+    @State private var showErrorAlert = false
+    @State private var errorAlert: CkanError?
+
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -42,6 +45,12 @@ struct ModManagerView: View, CkanActionDelegate {
                 loadInstances()
             }
         }
+        .alert(isPresented: $showErrorAlert, error: errorAlert) {
+            Button("OK") {}
+        }
+        .refreshable {
+            await loadInstances()
+        }
         .environment(navigationModel)
     }
 
@@ -58,8 +67,9 @@ struct ModManagerView: View, CkanActionDelegate {
                         try await client.getInstances(
                             with: self)
                     self.instances = instances
-                } catch {
-                    print("ERROR \(error)")
+                } catch let error as CkanError {
+                    errorAlert = error
+                    showErrorAlert = true
                 }
             }
         }

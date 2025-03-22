@@ -13,5 +13,6 @@ struct KerbalModManagerApp: App {
         WindowGroup {
             ModManagerView()
         }
+        .defaultSize(width: 800, height: 600)
     }
 }

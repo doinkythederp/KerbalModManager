@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; };
 		F69344C72D768BCA00DDB88D /* CkanAPI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		F6E3E2582D8E7B3300755A7A /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6E3E2582D8E7B3300755A7A /* SFSafeSymbols in Frameworks */,
 				F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -150,6 +152,7 @@
 			name = KerbalModManager;
 			packageProductDependencies = (
 				F69344C42D768BCA00DDB88D /* CkanAPI */,
+				F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */,
 			);
 			productName = KerbalModManager;
 			productReference = F69344942D768B2D00DDB88D /* KerbalModManager.app */;
@@ -233,6 +236,9 @@
 			);
 			mainGroup = F693448B2D768B2D00DDB88D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F69344952D768B2D00DDB88D /* Products */;
 			projectDirPath = "";
@@ -592,10 +598,26 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		F69344C42D768BCA00DDB88D /* CkanAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CkanAPI;
+		};
+		F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;
+			productName = SFSafeSymbols;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

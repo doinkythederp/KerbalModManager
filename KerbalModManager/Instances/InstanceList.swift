@@ -8,6 +8,7 @@
 import CkanAPI
 import SwiftUI
 import System
+import SFSafeSymbols
 
 struct SelectedGameInstance: FocusedValueKey {
     typealias Value = Binding<GameInstance?>
@@ -19,10 +20,6 @@ extension FocusedValues {
         set { self[SelectedGameInstance.self] = newValue }
     }
 }
-
-private let columns: [GridItem] = [
-    .init(.adaptive(minimum: 200), spacing: 0)
-]
 
 struct InstanceList: View {
     @Binding var instances: [GameInstance]
@@ -43,6 +40,7 @@ struct InstanceList: View {
     @State private var allowKeyboardNavigation = true
 
     @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.refresh) private var refresh
 
     var body: some View {
         container { geometryProxy, scrollViewProxy in
@@ -71,7 +69,7 @@ struct InstanceList: View {
                     )
                 }
             }
-            .padding(Self.spacing)
+            .padding(.horizontal, Self.spacing)
             .focusable()
             .focusEffectDisabled()
             .focusedValue(\.selectedGameInstance, $selection)
@@ -107,6 +105,11 @@ struct InstanceList: View {
             VStack(spacing: 0) {
                 Divider()
                 HStack {
+                    Button("Refresh", systemSymbol: .arrowClockwise) {
+                        Task {
+                            await refresh?()
+                        }
+                    }
                     Spacer()
                     Button("Cancel") {
                         cancel()
@@ -203,11 +206,11 @@ struct InstanceList: View {
 
     // MARK: Grid layout
 
-    private static let spacing: CGFloat = 5
+    nonisolated static let spacing: CGFloat = 20
 
-    private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: InstanceTile.size), spacing: 0)]
-    }
+    private let columns: [GridItem] = [
+        .init(.adaptive(minimum: InstanceTile.size), spacing: InstanceList.spacing)
+    ]
 }
 
 #Preview {

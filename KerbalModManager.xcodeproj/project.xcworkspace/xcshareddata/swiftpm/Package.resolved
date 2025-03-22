@@ -1,5 +1,5 @@
 {
-  "originHash" : "f30f9d2ec7764b2bca8be0cada7ec68c274609089f0bdbd37602b098e95e3865",
+  "originHash" : "2bc1bc85321737e3263025ef5325b3def0436a5b11c1895ac52c267b4a84297a",
   "pins" : [
     {
       "identity" : "grpc-swift",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "bdbc8320f1fd14775062b47f41c262e6d2723296",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "sfsafesymbols",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SFSafeSymbols/SFSafeSymbols",
+      "state" : {
+        "revision" : "3dd282d3269b061853a3b3bcd23a509d2aa166ce",
+        "version" : "6.2.0"
       }
     },
     {

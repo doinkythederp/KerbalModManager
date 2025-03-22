@@ -18,7 +18,9 @@ public actor CKANClient {
     }
 
     @discardableResult
-    public func openConnection(handleError: @Sendable @escaping (Error) -> Void) -> Task<Void, Never>? {
+    public func openConnection(handleError: @Sendable @escaping (Error) -> Void)
+        -> Task<Void, Never>?
+    {
         guard task == nil else { return nil }
         let client = grpcClient
         let task = Task {
@@ -32,82 +34,114 @@ public actor CKANClient {
         return task
     }
 
-    func performAction<T: Sendable>(_ message: Ckan_ActionMessage, with delegate: CkanActionDelegate, matcher: @Sendable @escaping (Ckan_ActionReply.OneOf_Status) async throws -> T?) async throws -> T? {
+    func performAction<T: Sendable>(
+        _ initialMessage: Ckan_ActionMessage,
+        with delegate: CkanActionDelegate,
+        matcher: @Sendable @escaping (Ckan_ActionReply.OneOf_Status)
+            async throws -> T?
+    ) async throws(CkanError) -> T? {
         let pendingMessages = AsyncChannel<Ckan_ActionMessage>()
         let req = StreamingClientRequest { writer in
-            try await writer.write(message)
+            try await writer.write(initialMessage)
             try await writer.write(contentsOf: pendingMessages)
         }
 
         print("Making request")
-        return try await ckanClient.processAction(request: req) { response in
-            for try await replyMsg in response.messages {
-                print("Got reply")
-                dump(replyMsg)
-                
-                guard let status = replyMsg.status else { continue }
+        do {
+            return try await ckanClient.processAction(request: req) {
+                response in
+                for try await replyMsg in response.messages {
+                    print("Got reply")
+                    dump(replyMsg)
 
-                switch status {
-                case .errorMessage(let message):
-                    try await delegate.showError(message: message)
+                    var status = replyMsg.status
+                    try await self.handleReply(status: &status, pending: pendingMessages, delegate: delegate)
 
-                case .message(let message):
-                    try await delegate.showDialog(message: message)
-
-                case .progress(let progress):
-                    try await delegate.handleProgress(
-                        ActionProgress(from: progress))
-
-                case .prompt(let prompt):
-                    var response = Ckan_ContinueRequest()
-
-                    if prompt.options.isEmpty {
-                        response.yesOrNo = await withCheckedContinuation {
-                            continuation in
-                            delegate.ask(
-                                prompt: .confirmation(
-                                    continuation: continuation))
-                        }
-                    } else {
-                        response.index = await withCheckedContinuation {
-                            continuation in
-                            let choices = ActionPrompt.Choices(
-                                defaultIndex: prompt.hasDefaultIndex
-                                    ? prompt.defaultIndex : nil,
-                                choices: prompt.options)
-                            delegate.ask(
-                                prompt: .picker(
-                                    choices: choices, continuation: continuation
-                                ))
-                        }
-                    }
-
-                    await pendingMessages.send(
-                        Ckan_ActionMessage.with { msg in
-                            msg.continueRequest = response
-                        })
-
-                case .failure(let error):
-                    throw CkanError.serverFailure(message: error.message)
-
-                default:
-                    if let inner = try await matcher(status) {
+                    // Only run `matcher` if `handleReply` didn't consume the status.
+                    if let status, let inner = try await matcher(status) {
                         pendingMessages.finish()
                         return inner
                     }
                 }
+
+                return nil
+            }
+        } catch let error as RPCError {
+            throw CkanError.rpcFailure(source: error)
+        } catch let error as CkanError {
+            throw error
+        } catch {
+            throw CkanError.unknownError(source: error)
+        }
+
+    }
+
+    /// Attempts to handle a reply's status. If successful, sets the status to `nil`.
+    private func handleReply(
+        status maybeStatus: inout Ckan_ActionReply.OneOf_Status?,
+        pending pendingMessages: AsyncChannel<Ckan_ActionMessage>,
+        delegate: CkanActionDelegate
+    ) async throws {
+        guard let status = maybeStatus else { return }
+        maybeStatus = nil
+
+        switch status {
+        case .errorMessage(let message):
+            try await delegate.showError(message: message)
+
+        case .message(let message):
+            try await delegate.showDialog(message: message)
+
+        case .progress(let progress):
+            try await delegate.handleProgress(
+                ActionProgress(from: progress))
+
+        case .prompt(let prompt):
+            var response = Ckan_ContinueRequest()
+
+            // If there is a set of allowed options, use the picker style.
+            if prompt.options.isEmpty {
+                response.yesOrNo = await withCheckedContinuation {
+                    continuation in
+                    delegate.ask(
+                        prompt: .confirmation(
+                            continuation: continuation))
+                }
+            } else {
+                response.index = await withCheckedContinuation {
+                    continuation in
+                    let choices = ActionPrompt.Choices(
+                        defaultIndex: prompt.hasDefaultIndex
+                            ? prompt.defaultIndex : nil,
+                        choices: prompt.options)
+                    delegate.ask(
+                        prompt: .picker(
+                            choices: choices, continuation: continuation
+                        ))
+                }
             }
 
-            return nil
+            await pendingMessages.send(
+                Ckan_ActionMessage.with { msg in
+                    msg.continueRequest = response
+                })
+
+        case .failure(let error):
+            throw CkanError.serverFailure(message: error.message)
+
+        default:
+            maybeStatus = status // ask caller to handle this status
         }
     }
 
-    public func getInstances(with delegate: CkanActionDelegate) async throws -> [GameInstance] {
+    public func getInstances(with delegate: CkanActionDelegate)
+        async throws(CkanError) -> [GameInstance]
+    {
         print("Getting instance list")
         let message = Ckan_ActionMessage.with {
             $0.instancesListRequest = Ckan_InstancesListRequest()
         }
-        
+
         let list = try await performAction(message, with: delegate) { status in
             return if case .instancesListReply(let list) = status {
                 list
@@ -118,7 +152,13 @@ public actor CKANClient {
 
         guard let list else { throw CkanError.responseNotReceived }
 
-        return try list.instances.map { try GameInstance(from: $0) }
+        do {
+            return try list.instances.map { try GameInstance(from: $0) }
+        } catch let error as CkanError {
+            throw error
+        } catch {
+            throw CkanError.unknownError(source: error)
+        }
     }
 
     deinit {
@@ -154,8 +194,8 @@ public protocol CkanActionDelegate: Sendable {
     func ask(prompt: ActionPrompt)
 }
 
-public extension CkanActionDelegate {
-    func showError(message: String) async {}
-    func showDialog(message: String) async {}
-    func handleProgress(_ progress: ActionProgress) async {}
+extension CkanActionDelegate {
+    public func showError(message: String) async {}
+    public func showDialog(message: String) async {}
+    public func handleProgress(_ progress: ActionProgress) async {}
 }
