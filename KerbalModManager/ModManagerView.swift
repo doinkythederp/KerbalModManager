@@ -9,8 +9,8 @@ import CkanAPI
 import SwiftUI
 
 struct ModManagerView: View, CkanActionDelegate {
-    @State private var client: CKANClient?
-    @State private var instances: [GameInstance] = []
+    @Environment(Store.self) private var store
+
     @State private var navigationModel = NavigationModel()
 
     @State private var showErrorAlert = false
@@ -19,59 +19,38 @@ struct ModManagerView: View, CkanActionDelegate {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
+        @Bindable var store = store
+
         NavigationStack(path: $navigationModel.path) {
-            InstanceList(instances: $instances) { instance in
+            InstanceList { instance in
                 navigationModel.selectedInstance = instance
-                navigationModel.path = [.modBrowser(instance)]
+                navigationModel.path = [.modBrowser(instance.id)]
             } onCancel: {
                 dismiss()
             }
             .navigationDestination(for: NavigationDestination.self) { destination in
                 switch destination {
-                case .modBrowser(let instance):
-                    ModBrowser(instance: instance)
+                case .modBrowser(let instanceId):
+                    ModBrowser(instance: store.instances[id: instanceId]!)
                 }
             }
         }
-        .onAppear {
-            if client == nil {
-                do {
-                    client = try CKANClient()
-                    print("Made client")
-                } catch {
-                    print("ERROR (init) \(error)")
-                }
-
-                loadInstances()
+        .task {
+            if (store.instances.isEmpty) {
+                await refresh()
             }
         }
-        .alert(isPresented: $showErrorAlert, error: errorAlert) {
-            Button("OK") {}
-        }
-        .refreshable {
-            await loadInstances()
-        }
+        .alert(isPresented: $showErrorAlert, error: errorAlert) {}
+        .refreshable(action: refresh)
         .environment(navigationModel)
     }
 
-    func loadInstances() {
-        if let client {
-            Task {
-                do {
-                    print("Fetching...")
-                    _ = await client.openConnection {
-                        error in
-                        print(error)
-                    }
-                    let instances =
-                        try await client.getInstances(
-                            with: self)
-                    self.instances = instances
-                } catch let error as CkanError {
-                    errorAlert = error
-                    showErrorAlert = true
-                }
-            }
+    func refresh() async {
+        do {
+            try await store.loadInstances(with: self)
+        } catch {
+            errorAlert = error
+            showErrorAlert = true
         }
     }
 

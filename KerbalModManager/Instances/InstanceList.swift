@@ -11,27 +11,25 @@ import System
 import SFSafeSymbols
 
 struct SelectedGameInstance: FocusedValueKey {
-    typealias Value = Binding<GameInstance?>
+    typealias Value = GameInstance
 }
 
 extension FocusedValues {
-    var selectedGameInstance: Binding<GameInstance?>? {
+    var selectedGameInstance: GameInstance? {
         get { self[SelectedGameInstance.self] }
         set { self[SelectedGameInstance.self] = newValue }
     }
 }
 
 struct InstanceList: View {
-    @Binding var instances: [GameInstance]
+    @Environment(Store.self) var store: Store
     var navigate: (GameInstance) -> Void
     var cancel: () -> Void
 
     init(
-        instances: Binding<[GameInstance]>,
         onNavigate: @escaping (GameInstance) -> Void = { _ in },
         onCancel: @escaping () -> Void = {}
     ) {
-        self._instances = instances
         self.navigate = onNavigate
         self.cancel = onCancel
     }
@@ -50,16 +48,16 @@ struct InstanceList: View {
             }
             .font(.system(size: 35).bold())
             .padding(.horizontal)
-            .padding(.top)
+            .padding(.top, 8)
 
             LazyVGrid(columns: columns) {
-                ForEach($instances) { $instance in
+                ForEach(store.instances) { instance in
                     InstanceTile(
-                        instance: $instance,
+                        instance: instance,
                         isSelected: instance == selection,
                         allowKeyboardNavigation: $allowKeyboardNavigation
                     )
-                    .id(instance)
+                    .id(instance.id)
                     .padding(Self.spacing)
                     .onTapGesture { selection = instance }
                     .simultaneousGesture(
@@ -72,7 +70,7 @@ struct InstanceList: View {
             .padding(.horizontal, Self.spacing)
             .focusable()
             .focusEffectDisabled()
-            .focusedValue(\.selectedGameInstance, $selection)
+            .focusedSceneValue(\.selectedGameInstance, selection)
             .onKeyPress(.escape) {
                 guard allowKeyboardNavigation else {
                     return .ignored
@@ -97,7 +95,7 @@ struct InstanceList: View {
             }
             .onAppear {
                 if selection == nil {
-                    selection = instances.first
+                    selection = store.instances.first
                 }
             }
         }
@@ -130,7 +128,6 @@ struct InstanceList: View {
             }
             .background()
         }
-        .navigationBarBackButtonHidden()
     }
 
     // Selection logic based on:
@@ -162,7 +159,7 @@ struct InstanceList: View {
         let instancesPerRow = Int(floor(rowWidth / InstanceTile.size))
 
         var newIndex: Int
-        if let selection, let currentIndex = instances.firstIndex(of: selection)
+        if let selection, let currentIndex = store.instances.firstIndex(of: selection)
         {
             switch direction {
             case .left:
@@ -184,9 +181,11 @@ struct InstanceList: View {
             newIndex = 0
         }
 
-        if newIndex >= 0 && newIndex < instances.count {
-            selection = instances[newIndex]
-            scrollViewProxy.scrollTo(selection)
+        if newIndex >= 0 && newIndex < store.instances.count {
+            selection = store.instances[newIndex]
+            if let selection {
+                scrollViewProxy.scrollTo(selection.id)
+            }
         }
     }
 
@@ -194,11 +193,11 @@ struct InstanceList: View {
         matching characters: String,
         scrollViewProxy: ScrollViewProxy
     ) -> KeyPress.Result {
-        if let matchedInstance = instances.first(where: { instance in
+        if let matchedInstance = store.instances.first(where: { instance in
             instance.name.lowercased().starts(with: characters)
         }) {
             selection = matchedInstance
-            scrollViewProxy.scrollTo(matchedInstance)
+            scrollViewProxy.scrollTo(matchedInstance.id)
             return .handled
         }
         return .ignored
@@ -233,7 +232,7 @@ struct InstanceList: View {
             selection = nil
         }
     } else {
-        InstanceList(instances: $instances) {
+        InstanceList {
             selection = $0
         }
             .frame(minWidth: 500)

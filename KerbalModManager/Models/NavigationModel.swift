@@ -10,7 +10,7 @@ import Observation
 import CkanAPI
 
 enum NavigationDestination: Hashable {
-    case modBrowser(GameInstance)
+    case modBrowser(GameInstance.ID)
 }
 
 @Observable final class NavigationModel {

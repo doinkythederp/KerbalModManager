@@ -6,32 +6,25 @@ public actor CKANClient {
     private var grpcClient: GRPCClient<HTTP2ClientTransport.TransportServices>
     private var ckanClient:
         Ckan_CKANServer.Client<HTTP2ClientTransport.TransportServices>
-    private var task: Task<Void, Never>?
 
-    public init() throws {
+    public init() {
         grpcClient = GRPCClient(
-            transport: try .http2NIOTS(
+            transport: try! .http2NIOTS(
                 target: .ipv4(host: "127.0.0.1", port: 31416),
                 transportSecurity: .plaintext
             ))
         ckanClient = Ckan_CKANServer.Client(wrapping: grpcClient)
+        Task {
+            await startConnection()
+        }
     }
 
-    @discardableResult
-    public func openConnection(handleError: @Sendable @escaping (Error) -> Void)
-        -> Task<Void, Never>?
-    {
-        guard task == nil else { return nil }
-        let client = grpcClient
-        let task = Task {
-            do {
-                try await client.runConnections()
-            } catch {
-                handleError(error)
-            }
+    private func startConnection() async {
+        do {
+            try await grpcClient.runConnections()
+        } catch {
+            print(error)
         }
-        self.task = task
-        return task
     }
 
     func performAction<T: Sendable>(
@@ -134,8 +127,8 @@ public actor CKANClient {
         }
     }
 
-    public func getInstances(with delegate: CkanActionDelegate)
-        async throws(CkanError) -> [GameInstance]
+    func getCkanInstances(with delegate: CkanActionDelegate)
+    async throws(CkanError) -> [Ckan_Instance]
     {
         print("Getting instance list")
         let message = Ckan_ActionMessage.with {
@@ -152,8 +145,14 @@ public actor CKANClient {
 
         guard let list else { throw CkanError.responseNotReceived }
 
+        return list.instances
+    }
+
+    @MainActor
+    public func getInstances(with delegate: CkanActionDelegate) async throws(CkanError) -> [GameInstance] {
+        let instances = try await getCkanInstances(with: delegate)
         do {
-            return try list.instances.map { try GameInstance(from: $0) }
+            return try instances.map { try GameInstance(from: $0) }
         } catch let error as CkanError {
             throw error
         } catch {

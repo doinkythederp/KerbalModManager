@@ -5,19 +5,21 @@
 //  Created by Lewis McClelland on 3/4/25.
 //
 
-import SwiftUI
 import CkanAPI
+import SwiftUI
 
 struct InstanceTile: View {
-    @Binding var instance: GameInstance
+    var instance: GameInstance
     var isSelected: Bool
     @Binding var allowKeyboardNavigation: Bool
 
     @State private var isHovering = false
-    @FocusState private var isRenaming: Bool
+    @State private var isRenaming = false
+    @FocusState private var renameFocused: Bool
     @State private var editedName = ""
 
     @Environment(\.isFocused) private var isFocused
+    @Environment(Store.self) private var store: Store?
 
     private var strokeStyle: AnyShapeStyle {
         isSelected
@@ -28,57 +30,71 @@ struct InstanceTile: View {
     @ViewBuilder
     var label: some View {
         HStack(spacing: 0) {
-                Button("Edit", systemImage: "pencil.line") {
-                    if isRenaming {
-                        finishRenaming()
-                    } else {
-                        rename()
-                    }
+            Button("Edit", systemImage: "pencil.line") {
+                if isRenaming {
+                    finishRenaming()
+                } else {
+                    rename()
                 }
-                .buttonStyle(.borderless)
-                .opacity(isHovering || isRenaming ? 1 : 0)
-                .frame(width: 25)
-                .help("Rename the game instance")
-
-            ZStack(alignment: .center) {
-                // When editing, the non-editable version of the text mirrors the text field contents
-                // in order to help prevent content layout shift when beginning to edit.
-
-                Text(isRenaming ? editedName : instance.name)
-                    .opacity(isRenaming ? 0 : 1)
-
-                // Only shows when renaming
-                TextField("Name", text: $editedName, axis: .vertical)
-                    .onSubmit {
-                        finishRenaming()
-                    }
-                    .onAppear {
-                        editedName = instance.name
-                    }
-                    .onChange(of: instance.name) {
-                        editedName = instance.name
-                    }
-                    .onChange(of: isRenaming) {
-                        allowKeyboardNavigation = !isRenaming
-                    }
-                    .textFieldStyle(.plain)
-                    .labelsHidden()
-                    .focused($isRenaming)
-                    .opacity(isRenaming ? 1 : 0)
             }
+            .buttonStyle(.borderless)
+            .opacity(isHovering || isRenaming ? 1 : 0)
+            .frame(width: 14)
+            .help("Rename the game instance")
+
+            ZStack {
+                if isRenaming {
+                    TextField("Name", text: $editedName, axis: .vertical)
+                        .textFieldStyle(.plain)
+                        .labelsHidden()
+                        .onSubmit { finishRenaming() }
+                        .onAppear { editedName = instance.name }
+                        .onChange(of: instance.name) {
+                            editedName = instance.name
+                        }
+                        .onKeyPress(.escape) {
+                            if isRenaming {
+                                cancelRenaming()
+                                return .handled
+                            }
+
+                            return .ignored
+                        }
+                        .focused($renameFocused)
+                        .defaultFocus($renameFocused, true)
+                } else {
+                    Text(isRenaming ? editedName : instance.name)
+                }
+            }
+            .lineLimit(2)
             .font(.headline)
             .padding(4)
             .foregroundStyle(isSelected && isFocused ? .white : .primary)
             .background(strokeStyle)
             .background(.quaternary)
             .clipShape(.rect(cornerRadius: 8))
+            .padding(.horizontal, 4)
+            .onChange(of: isRenaming) {
+                // When renaming, arrow keys should control text caret, not navigation.
+                allowKeyboardNavigation = !isRenaming
+                renameFocused = isRenaming
+                if !isRenaming {
+                    store?.instanceBeingRenamed = nil
+                }
+            }
 
-            Color.clear.frame(width: 25)
+            Color.clear.frame(width: 14) // offset the button to keep text centered
         }
         .labelStyle(.iconOnly)
         .frame(maxWidth: .infinity)
         .onHover {
             isHovering = $0
+        }
+        .onChange(of: store?.instanceBeingRenamed?.id) {
+            if store?.instanceBeingRenamed == instance {
+                // Some other view wants us to be renamed!
+                isRenaming = true
+            }
         }
     }
 
@@ -91,10 +107,10 @@ struct InstanceTile: View {
             Divider()
             ControlGroup("Local Files") {
                 Button("Reveal in Finder", systemImage: "folder") {
-                    openInFinder()
+                    instance.openInFinder()
                 }
                 Button("Copy Path", systemImage: "clipboard") {
-                    copyDirectory()
+                    instance.copyDirectory()
                 }
                 Text(instance.directory.string)
                     .textSelection(.enabled)
@@ -130,14 +146,14 @@ struct InstanceTile: View {
                 .overlay {
                     ContainerRelativeShape()
                         .inset(by: -Self.selectionStrokeWidth / 2)
-                        .stroke(strokeStyle, lineWidth: Self.selectionStrokeWidth)
+                        .stroke(
+                            strokeStyle, lineWidth: Self.selectionStrokeWidth)
                 }
                 .containerShape(.rect(cornerRadius: 10))
                 .shadow(radius: 6)
                 .padding(2)
 
-
-            label.fixedSize()
+            label.fixedSize(horizontal: false, vertical: true)
         }
         .frame(width: Self.size)
         .contextMenu { contextMenu }
@@ -149,20 +165,14 @@ struct InstanceTile: View {
         isRenaming = true
     }
 
-    func finishRenaming() {
-        instance.name = editedName
+    func cancelRenaming() {
+        editedName = instance.name
         isRenaming = false
     }
 
-    func copyDirectory() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(instance.directory.string, forType: .string)
-        pasteboard.setString(instance.fileURL.absoluteString, forType: .fileURL)
-    }
-
-    func openInFinder() {
-        NSWorkspace.shared.activateFileViewerSelecting([instance.fileURL])
+    func finishRenaming() {
+        instance.rename(editedName)
+        isRenaming = false
     }
 }
 
@@ -170,7 +180,6 @@ extension InstanceTile {
     nonisolated static let size: CGFloat = 200
     nonisolated static let selectionStrokeWidth: CGFloat = 3
 }
-
 
 #Preview {
     @Previewable @State var instance = GameInstance(
@@ -180,12 +189,12 @@ extension InstanceTile {
 
     HStack(spacing: 30) {
         InstanceTile(
-            instance: $instance,
+            instance: instance,
             isSelected: true,
             allowKeyboardNavigation: .constant(true)
         )
         InstanceTile(
-            instance: $instance,
+            instance: instance,
             isSelected: false,
             allowKeyboardNavigation: .constant(true)
         )

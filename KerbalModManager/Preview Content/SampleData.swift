@@ -10,6 +10,7 @@ import System
 import Foundation
 
 extension GameInstance {
+    @MainActor
     static let samples = [
         GameInstance(
             name: "Global Kerbal Space Program",

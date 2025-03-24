@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F6758BD42D9137F20014836F /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = F6758BD32D9137F20014836F /* IdentifiedCollections */; };
 		F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; };
 		F69344C72D768BCA00DDB88D /* CkanAPI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F6E3E2582D8E7B3300755A7A /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */; };
@@ -78,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6758BD42D9137F20014836F /* IdentifiedCollections in Frameworks */,
 				F6E3E2582D8E7B3300755A7A /* SFSafeSymbols in Frameworks */,
 				F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */,
 			);
@@ -153,6 +155,7 @@
 			packageProductDependencies = (
 				F69344C42D768BCA00DDB88D /* CkanAPI */,
 				F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */,
+				F6758BD32D9137F20014836F /* IdentifiedCollections */,
 			);
 			productName = KerbalModManager;
 			productReference = F69344942D768B2D00DDB88D /* KerbalModManager.app */;
@@ -238,6 +241,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
+				F6758BD22D9137F20014836F /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F69344952D768B2D00DDB88D /* Products */;
@@ -599,6 +603,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F6758BD22D9137F20014836F /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-identified-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
+			};
+		};
 		F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols";
@@ -610,6 +622,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F6758BD32D9137F20014836F /* IdentifiedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F6758BD22D9137F20014836F /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
+			productName = IdentifiedCollections;
+		};
 		F69344C42D768BCA00DDB88D /* CkanAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CkanAPI;

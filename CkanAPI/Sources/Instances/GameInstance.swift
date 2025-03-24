@@ -7,10 +7,16 @@
 
 import System
 import Foundation
+import AppKit
 
-public struct GameInstance: Sendable, Identifiable, Hashable {
+@Observable
+public final class GameInstance: Identifiable, Equatable {
+    public static func == (lhs: GameInstance, rhs: GameInstance) -> Bool {
+        lhs.id == rhs.id
+    }
+
     public var id = UUID()
-    public var name: String
+    public private(set) var name: String
     public var directory: FilePath
     public var game: Game
     public var version: GameVersion
@@ -18,6 +24,22 @@ public struct GameInstance: Sendable, Identifiable, Hashable {
 
     public var fileURL: URL {
         URL(filePath: directory)!
+    }
+
+    public func rename(_ newName: String) {
+        if newName.isEmpty { return }
+        name = newName
+    }
+
+    public func copyDirectory() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(directory.string, forType: .string)
+        pasteboard.setString(fileURL.absoluteString, forType: .fileURL)
+    }
+
+    public func openInFinder() {
+        NSWorkspace.shared.activateFileViewerSelecting([fileURL])
     }
 
     public init(
