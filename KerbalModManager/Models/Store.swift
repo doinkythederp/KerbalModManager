@@ -17,6 +17,13 @@ import IdentifiedCollections
 
     @ObservationIgnored lazy var client = CKANClient()
 
+    var showCkanError = false
+    var ckanError: CkanError? {
+        didSet {
+            showCkanError = ckanError != nil
+        }
+    }
+
     func loadInstances(with delegate: CkanActionDelegate) async throws(CkanError) {
         logger.info("Fetching instances…")
         instances = IdentifiedArray(uniqueElements: try await client.getInstances(with: delegate))
@@ -25,7 +32,7 @@ import IdentifiedCollections
     func loadModules(compatibleWith instance: GameInstance, with delegate: CkanActionDelegate) async throws(CkanError) {
         logger.info("Fetching modules…")
         let modules = try await client.getModules(compatibleWith: instance, with: delegate)
-        instance.compatibleModules.append(contentsOf: modules)
+        instance.compatibleModules.formUnion(modules.map(\.id))
         self.modules.append(contentsOf: modules)
 
     }

@@ -24,7 +24,7 @@ public final class GameInstance: Identifiable, Equatable {
     public var isDefault: Bool
 
     public var hasPrepopulatedRegistry = false
-    public var compatibleModules: IdentifiedArrayOf<CkanModule> = []
+    public var compatibleModules = Set<CkanModule.ID>()
 
     public var fileURL: URL {
         URL(filePath: directory)!

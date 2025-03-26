@@ -11,11 +11,16 @@ import CkanAPI
 struct ModBrowser: View {
     var instance: GameInstance
 
-    @State private var loadProgress: Int?
+    @State private var loadProgress = 0.0
     @State private var showLoading = false
 
+    @Environment(Store.self) private var store: Store?
+    @Environment(\.ckanActionDelegate) private var ckanActionDelegate
+
     var body: some View {
-        Text("Hello world")
+        VStack {
+            Text("\(instance.compatibleModules.count) Modules Loaded")
+        }
             .padding()
             .navigationTitle("Mod Browser")
             .navigationSubtitle(instance.name)
@@ -26,22 +31,42 @@ struct ModBrowser: View {
             .sheet(isPresented: $showLoading) {
                 VStack {
                     Text("Loading…")
-                    ProgressView(value: loadProgress.map(Double.init), total: 100)
+                    ProgressView(value: Double(loadProgress), total: 100)
                 }
                 .padding()
                 .presentationSizing(.form)
             }
-            .onAppear {
-                // TODO: prepopulate instance registry, then fetch modules using Store, also update progress view throughout
-                // Skip this if there's already modules compatible with the instance in the GameInstance
+            .task {
+                guard let store else { return }
+
+                do {
+                    showLoading = true
+                    loadProgress = 0
+
+                    if !instance.hasPrepopulatedRegistry {
+                        try await store.client.prepopulateRegistry(for: instance, with: self)
+                    }
+
+                    loadProgress = 100
+
+                    try await store.loadModules(compatibleWith: instance, with: ckanActionDelegate)
+                    showLoading = false
+                } catch {
+                    print(error.localizedDescription)
+                    showLoading = false
+                    loadProgress = 0
+                    store.ckanError = error as? CkanError
+                }
             }
     }
 }
 
 extension ModBrowser: CkanActionDelegate {
     nonisolated func handleProgress(_ progress: ActionProgress) async throws {
+        print("Progress: \(progress.percentCompletion)% \(progress.message ?? "")")
         await MainActor.run {
-            loadProgress = Int(progress.percentCompletion)
+            showLoading = true
+            loadProgress = Double(progress.percentCompletion)
         }
     }
 }
@@ -92,7 +117,9 @@ private struct ModBrowserToolbar: ToolbarContent {
 #Preview {
     @Previewable @State var store = Store()
 
-    ModBrowser(instance: GameInstance.samples.first!)
+    ErrorAlertView {
+        ModBrowser(instance: GameInstance.samples.first!)
+    }
         .frame(width: 600)
         .environment(store)
 

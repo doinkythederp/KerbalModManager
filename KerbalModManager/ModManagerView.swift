@@ -13,25 +13,24 @@ struct ModManagerView: View, CkanActionDelegate {
 
     @State private var navigationModel = NavigationModel()
 
-    @State private var showErrorAlert = false
-    @State private var errorAlert: CkanError?
-
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
         @Bindable var store = store
 
-        NavigationStack(path: $navigationModel.path) {
-            InstanceList { instance in
-                navigationModel.selectedInstance = instance
-                navigationModel.path = [.modBrowser(instance.id)]
-            } onCancel: {
-                dismiss()
-            }
-            .navigationDestination(for: NavigationDestination.self) { destination in
-                switch destination {
-                case .modBrowser(let instanceId):
-                    ModBrowser(instance: store.instances[id: instanceId]!)
+        ErrorAlertView {
+            NavigationStack(path: $navigationModel.path) {
+                InstanceList { instance in
+                    navigationModel.selectedInstance = instance
+                    navigationModel.path = [.modBrowser(instance.id)]
+                } onCancel: {
+                    dismiss()
+                }
+                .navigationDestination(for: NavigationDestination.self) { destination in
+                    switch destination {
+                    case .modBrowser(let instanceId):
+                        ModBrowser(instance: store.instances[id: instanceId]!)
+                    }
                 }
             }
         }
@@ -40,7 +39,6 @@ struct ModManagerView: View, CkanActionDelegate {
                 await refresh()
             }
         }
-        .alert(isPresented: $showErrorAlert, error: errorAlert) {}
         .refreshable(action: refresh)
         .environment(navigationModel)
     }
@@ -49,8 +47,7 @@ struct ModManagerView: View, CkanActionDelegate {
         do {
             try await store.loadInstances(with: self)
         } catch {
-            errorAlert = error
-            showErrorAlert = true
+            store.ckanError = error
         }
     }
 

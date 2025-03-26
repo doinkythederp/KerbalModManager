@@ -55,15 +55,19 @@ extension CkanError: LocalizedError {
 
 extension CkanError {
     init(instance reply: Ckan_InstanceOperationReply) {
+        precondition(reply.result.rawValue != 0, "Cannot create an error from an error code indicating success")
+
         let code = CkanServerError.InstanceCode(rawValue: reply.result.rawValue)
-        guard let code else { fatalError("The server returned an unknown instance error code (\(reply.result.rawValue)") }
+        guard let code else { fatalError("The server returned an unknown instance error code (\(reply.result.rawValue))") }
         let details: String? = if reply.hasErrorDetails { reply.errorDetails } else { nil }
         self = .server(CkanServerError(code: code, details: details))
     }
 
     init(registry reply: Ckan_RegistryOperationReply) {
+        precondition(reply.result.rawValue != 0, "Cannot create an error from an error code indicating success")
+
         let code = CkanServerError.RegistryCode(rawValue: reply.result.rawValue)
-        guard let code else { fatalError("The server returned an unknown registry error code (\(reply.result.rawValue)") }
+        guard let code else { fatalError("The server returned an unknown registry error code (\(reply.result.rawValue))") }
         let details: String? = if reply.hasErrorDetails { reply.errorDetails } else { nil }
         self = .server(CkanServerError(code: code, details: details))
     }

@@ -13,7 +13,7 @@ extension GameInstance {
     @MainActor
     static let samples = [
         GameInstance(
-            name: "Global Kerbal Space Program",
+            name: "Kerbal Space Program",
             directory: "/Applications/Kerbal Space Program"),
         GameInstance(
             name: "Steam KSP",

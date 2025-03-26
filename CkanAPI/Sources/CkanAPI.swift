@@ -45,7 +45,7 @@ public actor CKANClient {
                 response in
                 for try await replyMsg in response.messages {
                     print("Got reply")
-                    dump(replyMsg)
+//                    dump(replyMsg)
 
                     var status = replyMsg.status
                     try await self.handleReply(
@@ -133,11 +133,12 @@ public actor CKANClient {
         _ initialMessage: Ckan_ActionMessage,
         with delegate: CkanActionDelegate
     ) async throws(CkanError) -> Ckan_RegistryOperationReply {
-        let reply = try await performAction(initialMessage, with: delegate) { status in
-            return if case .registryOperationReply(let reply) = status {
-                reply
-            } else {
-                nil
+        let reply = try await performAction(initialMessage, with: delegate) {
+            status in
+            return switch status {
+            case .registryOperationReply(let reply): reply
+            case .instanceOperationReply(let reply): throw CkanError(instance: reply)
+            default: nil
             }
         }
 
@@ -183,7 +184,7 @@ public actor CKANClient {
         }
     }
 
-    public func prepopulateRegistry(
+    func prepopulateRegistry(
         forName instanceName: String,
         forceLock: Bool = false,
         with delegate: CkanActionDelegate
@@ -191,12 +192,25 @@ public actor CKANClient {
         print("Prepopulating registry")
 
         let message = Ckan_ActionMessage.with {
-            $0.registryPrepopulateRequest = Ckan_RegistryPrepopulateRequest.with {
-                $0.instanceName = instanceName
-                $0.forceLock = forceLock
-            }
+            $0.registryPrepopulateRequest =
+                Ckan_RegistryPrepopulateRequest.with {
+                    $0.instanceName = instanceName
+                    $0.forceLock = forceLock
+                }
         }
         _ = try await performRegistryAction(message, with: delegate)
+    }
+
+    @MainActor
+    public func prepopulateRegistry(
+        for instance: GameInstance, forceLock: Bool = false,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        try await prepopulateRegistry(
+            forName: instance.name,
+            forceLock: forceLock,
+            with: delegate
+        )
     }
 
     func getCkanModules(
@@ -208,7 +222,9 @@ public actor CKANClient {
         print("Getting instance list")
         let message = Ckan_ActionMessage.with {
             $0.registryCompatibleModulesRequest =
-                Ckan_RegistryCompatibleModulesRequest()
+            Ckan_RegistryCompatibleModulesRequest.with {
+                $0.instanceName = instanceName
+            }
         }
 
         let reply = try await performRegistryAction(message, with: delegate)
@@ -270,4 +286,8 @@ extension CkanActionDelegate {
     public func ask(prompt: ActionPrompt) {
         fatalError("Unexpected CKAN prompt")
     }
+}
+
+public struct EmptyCkanActionDelegate: CkanActionDelegate {
+    public init() {}
 }
