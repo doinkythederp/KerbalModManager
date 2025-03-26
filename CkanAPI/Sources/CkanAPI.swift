@@ -48,7 +48,9 @@ public actor CKANClient {
                     dump(replyMsg)
 
                     var status = replyMsg.status
-                    try await self.handleReply(status: &status, pending: pendingMessages, delegate: delegate)
+                    try await self.handleReply(
+                        status: &status, pending: pendingMessages,
+                        delegate: delegate)
 
                     // Only run `matcher` if `handleReply` didn't consume the status.
                     if let status, let inner = try await matcher(status) {
@@ -60,7 +62,7 @@ public actor CKANClient {
                 return nil
             }
         } catch let error as RPCError {
-            throw CkanError.rpcFailure(source: error)
+            throw CkanError.rpcFailure(error)
         } catch let error as CkanError {
             throw error
         } catch {
@@ -123,12 +125,31 @@ public actor CKANClient {
             throw CkanError.serverFailure(message: error.message)
 
         default:
-            maybeStatus = status // ask caller to handle this status
+            maybeStatus = status  // ask caller to handle this status
         }
     }
 
+    private func performRegistryAction(
+        _ initialMessage: Ckan_ActionMessage,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) -> Ckan_RegistryOperationReply {
+        let reply = try await performAction(initialMessage, with: delegate) { status in
+            return if case .registryOperationReply(let reply) = status {
+                reply
+            } else {
+                nil
+            }
+        }
+
+        guard let reply else { throw CkanError.responseNotReceived }
+        guard reply.result == .rorSuccess else {
+            throw CkanError(registry: reply)
+        }
+        return reply
+    }
+
     func getCkanInstances(with delegate: CkanActionDelegate)
-    async throws(CkanError) -> [Ckan_Instance]
+        async throws(CkanError) -> [Ckan_Instance]
     {
         print("Getting instance list")
         let message = Ckan_ActionMessage.with {
@@ -149,7 +170,9 @@ public actor CKANClient {
     }
 
     @MainActor
-    public func getInstances(with delegate: CkanActionDelegate) async throws(CkanError) -> [GameInstance] {
+    public func getInstances(with delegate: CkanActionDelegate)
+        async throws(CkanError) -> [GameInstance]
+    {
         let instances = try await getCkanInstances(with: delegate)
         do {
             return try instances.map { try GameInstance(from: $0) }
@@ -160,12 +183,59 @@ public actor CKANClient {
         }
     }
 
+    public func prepopulateRegistry(
+        forName instanceName: String,
+        forceLock: Bool = false,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        print("Prepopulating registry")
+
+        let message = Ckan_ActionMessage.with {
+            $0.registryPrepopulateRequest = Ckan_RegistryPrepopulateRequest.with {
+                $0.instanceName = instanceName
+                $0.forceLock = forceLock
+            }
+        }
+        _ = try await performRegistryAction(message, with: delegate)
+    }
+
+    func getCkanModules(
+        compatibleWith instanceName: String,
+        with delegate: CkanActionDelegate
+    )
+        async throws(CkanError) -> [Ckan_Module]
+    {
+        print("Getting instance list")
+        let message = Ckan_ActionMessage.with {
+            $0.registryCompatibleModulesRequest =
+                Ckan_RegistryCompatibleModulesRequest()
+        }
+
+        let reply = try await performRegistryAction(message, with: delegate)
+
+        guard case .compatibleModules(let list) = reply.results else {
+            throw CkanError.responseNotReceived
+        }
+
+        return list.modules
+    }
+
+    @MainActor
+    public func getModules(
+        compatibleWith instance: GameInstance,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) -> [CkanModule] {
+        let modules = try await getCkanModules(
+            compatibleWith: instance.name, with: delegate)
+        return modules.map { CkanModule(from: $0) }
+    }
+
     deinit {
         self.grpcClient.beginGracefulShutdown()
     }
 }
 
-public struct ActionProgress {
+public struct ActionProgress: Sendable {
     public let percentCompletion: UInt32
     public let message: String?
 
@@ -197,4 +267,7 @@ extension CkanActionDelegate {
     public func showError(message: String) async {}
     public func showDialog(message: String) async {}
     public func handleProgress(_ progress: ActionProgress) async {}
+    public func ask(prompt: ActionPrompt) {
+        fatalError("Unexpected CKAN prompt")
+    }
 }

@@ -8,6 +8,7 @@
 import System
 import Foundation
 import AppKit
+import IdentifiedCollections
 
 @Observable
 public final class GameInstance: Identifiable, Equatable {
@@ -21,6 +22,9 @@ public final class GameInstance: Identifiable, Equatable {
     public var game: Game
     public var version: GameVersion
     public var isDefault: Bool
+
+    public var hasPrepopulatedRegistry = false
+    public var compatibleModules: IdentifiedArrayOf<CkanModule> = []
 
     public var fileURL: URL {
         URL(filePath: directory)!

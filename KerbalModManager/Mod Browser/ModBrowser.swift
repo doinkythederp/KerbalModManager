@@ -10,7 +10,9 @@ import CkanAPI
 
 struct ModBrowser: View {
     var instance: GameInstance
-//    var registry: GameRegistry
+
+    @State private var loadProgress: Int?
+    @State private var showLoading = false
 
     var body: some View {
         Text("Hello world")
@@ -21,6 +23,26 @@ struct ModBrowser: View {
             .toolbar {
                 ModBrowserToolbar(instance: instance)
             }
+            .sheet(isPresented: $showLoading) {
+                VStack {
+                    Text("Loading…")
+                    ProgressView(value: loadProgress.map(Double.init), total: 100)
+                }
+                .padding()
+                .presentationSizing(.form)
+            }
+            .onAppear {
+                // TODO: prepopulate instance registry, then fetch modules using Store, also update progress view throughout
+                // Skip this if there's already modules compatible with the instance in the GameInstance
+            }
+    }
+}
+
+extension ModBrowser: CkanActionDelegate {
+    nonisolated func handleProgress(_ progress: ActionProgress) async throws {
+        await MainActor.run {
+            loadProgress = Int(progress.percentCompletion)
+        }
     }
 }
 
