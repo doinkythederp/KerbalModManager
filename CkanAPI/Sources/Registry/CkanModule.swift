@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Collections
 
 @Observable
 public class CkanModule: Identifiable {
@@ -162,5 +163,34 @@ public class CkanModule: Identifiable {
         self.downloadUrls = downloadUrls
         self.downloadSizeBytes = downloadSizeBytes
         self.installSizeBytes = installSizeBytes
+    }
+}
+
+public extension CkanModule.Resources {
+    var collection: OrderedDictionary<String, String> {
+        let entries: [(LocalizedStringResource, String?)] = [
+            ("Homepage", homepage),
+            ("Spacedock", spacedock),
+            ("Curse", curse),
+            ("Bug Tracker", bugtracker),
+            ("Discussions", discussions),
+            ("Store", store),
+            ("Steam Store", steamStore),
+            ("Manual", manual),
+            ("Source Code", repository),
+            ("License", license),
+            ("Build Server", ci),
+            ("Netkan File", metanetkan),
+            ("Remote AVC", remoteAvc),
+            ("Remote swinfo", remoteSwinfo),
+        ]
+
+        let compacted: [(String, String)] = entries.compactMap { entry in
+            let (key, value) = entry
+            guard let value else { return nil }
+            return (String(localized: key), value)
+        }
+
+        return OrderedDictionary(uniqueKeysWithValues: compacted)
     }
 }

@@ -25,9 +25,7 @@ struct LicenseTagView: View {
             )
             if !restricted {
                 Button("Copy License Name") {
-                    let pasteboard = NSPasteboard.general
-                    pasteboard.clearContents()
-                    pasteboard.setString(license + " license", forType: .string)
+                    NSPasteboard.general.copy(license + " license")
                 }
             }
         }

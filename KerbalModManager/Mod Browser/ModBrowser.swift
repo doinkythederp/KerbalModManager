@@ -57,7 +57,6 @@ struct ModBrowser: View {
 
             table(modules: modules)
         }
-        .padding()
         .navigationTitle("Mod Browser")
         .navigationSubtitle(instance.name)
         .focusedSceneValue(\.selectedGameInstance, instance)
@@ -127,12 +126,14 @@ extension CkanModule {
         }
     }
     var authorsDescription: String {
-        authors.joined(separator: ", ")
+        authors.formatted()
     }
 }
 
 private struct ModBrowserInspector: View {
     var selectedModules: Set<CkanModule.ID>
+
+    @State private var showDetails = true
 
     @Environment(Store.self) private var store
 
@@ -141,43 +142,111 @@ private struct ModBrowserInspector: View {
             let module = store.modules[id: moduleId]
         {
             ScrollView {
-                VStack(alignment: .leading) {
-                    HStack(alignment: .bottom) {
-                        Text(module.name)
-                            .bold()
+                VStack(alignment: .leading, spacing: 15) {
 
-                        Text(module.versionDescription)
-                            .foregroundStyle(.secondary)
-                    }
-                    .font(.title2)
+                    VStack(alignment: .leading) {
+                        HStack(alignment: .bottom) {
+                            Text(module.name)
+                                .font(.title2.bold())
 
-                    HStack(alignment: .top, spacing: 5) {
-                        Text("By:")
-                        Text(module.authorsDescription)
-                    }
-                    .foregroundStyle(.secondary)
-
-                    WrappingHStack {
-                        ForEach(module.licenses, id: \.self) { license in
-                            LicenseTagView(license: license)
+                            Text(module.versionDescription)
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
                         }
-                        if module.releaseStatus != .stable {
-                            StabilityTagView(releaseStatus: module.releaseStatus)
+
+                        HStack(alignment: .top, spacing: 5) {
+                            Text("By:")
+                            Text(module.authorsDescription)
+                                .textSelection(.enabled)
+                        }
+                        .foregroundStyle(.secondary)
+
+                        WrappingHStack {
+                            ForEach(module.licenses, id: \.self) { license in
+                                LicenseTagView(license: license)
+                            }
+                            if module.releaseStatus != .stable {
+                                StabilityTagView(releaseStatus: module.releaseStatus)
+                            }
                         }
                     }
 
                     Text(module.abstract)
-                        .padding(.vertical, 5)
+                        .textSelection(.enabled)
 
                     if let description = module.description {
                         Text(description)
+                            .textSelection(.enabled)
+                    }
+
+                    DisclosureGroup("Resources and Details", isExpanded: $showDetails) {
+                        Grid(alignment: .leading) {
+                            let collection = module.resources.collection
+                            ForEach(collection.elements, id: \.key) { element in
+                                GridRow {
+                                    Text("\(element.key):")
+                                        .gridColumnAlignment(.trailing)
+
+                                    let url = URL(string: element.value)
+                                    let text = Text(
+                                        element.value
+                                            .trimmingPrefix(/https?:\/\//)
+                                    )
+                                        .lineLimit(1)
+
+                                    Group {
+                                        if let url {
+                                            Link(destination: url) {
+                                                text
+                                            }
+                                            .contextMenu {
+                                                Button("Copy Link") {
+                                                    NSPasteboard.general.copy(url)
+                                                }
+                                            }
+                                        } else {
+                                            text
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
+
+                            if !module.localizations.isEmpty {
+                                GridRow(alignment: .top) {
+                                    Text("Languages:")
+                                        .gridColumnAlignment(.trailing)
+
+                                    Text(
+                                        module.localizations
+                                            .compactMap {
+                                                Locale.current
+                                                    .localizedString(forLanguageCode: $0.identifier)
+                                            }
+                                            .formatted()
+                                    )
+                                    .textSelection(.enabled)
+                                }
+                            }
+                        }
                     }
 
                     Spacer()
                 }
                 .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .safeAreaInset(edge: .bottom) {
+                HStack {
+                    DownloadSizeIndicator(module: module)
+                    Spacer()
+                    Button("Install") {}
+                }
+                .padding()
+                .background()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            ContentUnavailableView("Select a Mod", systemSymbol: .magnifyingglassCircle)
         }
     }
 }
@@ -223,6 +292,40 @@ private struct ModBrowserToolbar: ToolbarContent {
                         store?.instanceBeingRenamed = nil
                     }
                 }
+            }
+        }
+    }
+}
+
+private struct DownloadSizeIndicator: View {
+    var module: CkanModule
+
+    var body: some View {
+        if module.downloadSizeBytes + module.installSizeBytes > 0 {
+            HStack(spacing: 5) {
+                Image(systemSymbol: .arrowDownCircle)
+                WrappingHStack(spacing: .constant(3)) {
+                    if module.downloadSizeBytes > 0 {
+                        Text(
+                            module.downloadSizeBytes
+                                .formatted(.byteCount(style: .memory))
+                        )
+                    }
+
+                    if module.installSizeBytes > 0 {
+                        let value = module.installSizeBytes
+                            .formatted(.byteCount(style: .memory))
+
+                        if module.downloadSizeBytes > 0 {
+                            Text("(\(value) on disk)")
+                        } else {
+                            Text("\(value) on disk")
+                        }
+                    }
+
+                }
+                .font(.callout)
+                .foregroundStyle(.secondary)
             }
         }
     }
