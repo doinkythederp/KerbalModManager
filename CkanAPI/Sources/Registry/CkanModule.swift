@@ -86,10 +86,18 @@ public class CkanModule: Identifiable {
         case dlc
     }
 
-    public enum ReleaseStatus {
+    public enum ReleaseStatus: CustomLocalizedStringResourceConvertible {
         case stable
         case testing
         case development
+
+        public var localizedStringResource: LocalizedStringResource {
+            return switch self {
+            case .stable: "Stable"
+            case .testing: "Testing"
+            case .development: "Development"
+            }
+        }
     }
 
     public struct Relationship {
