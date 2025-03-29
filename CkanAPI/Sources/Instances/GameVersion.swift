@@ -5,7 +5,9 @@
 //  Created by Lewis McClelland on 3/3/25.
 //
 
-public struct GameVersion: Sendable, Hashable {
+import Foundation
+
+public struct GameVersion: Sendable, Hashable, Comparable, CustomStringConvertible {
     public var major: Int?
     public var minor: Int?
     public var patch: Int?
@@ -23,6 +25,20 @@ public struct GameVersion: Sendable, Hashable {
         minor = ckan.hasMinor ? Int(ckan.minor) : nil
         patch = ckan.hasPatch ? Int(ckan.patch) : nil
         build = ckan.hasBuild ? Int(ckan.build) : nil
+    }
+
+    public static func < (lhs: GameVersion, rhs: GameVersion) -> Bool {
+        let lhsComponents = [lhs.major ?? 0, lhs.minor ?? 0, lhs.patch ?? 0, lhs.build ?? 0]
+        let rhsComponents = [rhs.major ?? 0, rhs.minor ?? 0, rhs.patch ?? 0, rhs.build ?? 0]
+        return lhsComponents.lexicographicallyPrecedes(rhsComponents)
+    }
+
+    public var description: String {
+        let components = [major, minor, patch, build]
+            .compactMap(\.self)
+            .map { "\($0)" }
+
+        return components.joined(separator: ".")
     }
 }
 

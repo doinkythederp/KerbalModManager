@@ -5,8 +5,8 @@
 //  Created by Lewis McClelland on 3/25/25.
 //
 
-import Foundation
 import Collections
+import Foundation
 
 @Observable
 public class CkanModule: Identifiable {
@@ -38,6 +38,10 @@ public class CkanModule: Identifiable {
     public var downloadUrls: [URL]
     public var downloadSizeBytes: UInt
     public var installSizeBytes: UInt
+
+//    public var tags: [String]
+//    public var releaseDate: Date
+//    public var downloadCount: UInt
 
     public struct Resources {
         public var homepage: String?
@@ -101,13 +105,37 @@ public class CkanModule: Identifiable {
         }
     }
 
-    public struct Relationship {
+    public struct Relationship: Identifiable {
+        public var id = UUID()
+
         public var choiceHelpText: String?
         /// If true, then don't show recommendations and suggestions of this module or its dependencies.
         /// Otherwise recommendations and suggestions of everything in changeset will be included.
         /// This is meant to allow the KSP-RO team to shorten the prompts that appear during their installation.
         public var suppressRecommendations: Bool
         public var type: RelationshipType
+
+        public init(
+            _ type: CkanModule.RelationshipType,
+            choiceHelpText: String? = nil,
+            suppressRecommendations: Bool = false
+        ) {
+            self.choiceHelpText = choiceHelpText
+            self.suppressRecommendations = suppressRecommendations
+            self.type = type
+        }
+
+        public init(direct module: String) {
+            self.init(.direct(DirectRelationship(name: module)))
+        }
+
+        public init(anyOf modules: [String]) {
+            self.init(
+                .anyOf(
+                    allowedModules: modules.map {
+                        Relationship(direct: $0)
+                    }))
+        }
     }
 
     public enum RelationshipType {
@@ -120,6 +148,16 @@ public class CkanModule: Identifiable {
         public var maxVersion: String?
         public var minVersion: String?
         public var version: String?
+
+        public init(
+            name: String, maxVersion: String? = nil, minVersion: String? = nil,
+            version: String? = nil
+        ) {
+            self.name = name
+            self.maxVersion = maxVersion
+            self.minVersion = minVersion
+            self.version = version
+        }
     }
 
     public init(
@@ -166,8 +204,8 @@ public class CkanModule: Identifiable {
     }
 }
 
-public extension CkanModule.Resources {
-    var collection: OrderedDictionary<String, String> {
+extension CkanModule.Resources {
+    public var collection: OrderedDictionary<String, String> {
         let entries: [(LocalizedStringResource, String?)] = [
             ("Homepage", homepage),
             ("Spacedock", spacedock),
