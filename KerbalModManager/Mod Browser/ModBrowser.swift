@@ -6,9 +6,10 @@
 //
 
 import CkanAPI
+import IdentifiedCollections
+import SFSafeSymbols
 import SwiftUI
 import WrappingHStack
-import SFSafeSymbols
 
 struct ModBrowser: View {
     var instance: GameInstance
@@ -62,13 +63,15 @@ struct ModBrowser: View {
             .width(min: 100, ideal: 100, max: 200)
             .customizationID("author")
 
-            TableColumn("Max KSP", value: \.kspVersionMaxDescription) { module in
+            TableColumn("Max KSP", value: \.kspVersionMaxDescription) {
+                module in
                 Text(module.kspVersionMaxDescription)
             }
             .width(70)
             .customizationID("maxVersion")
 
-            TableColumn("Download", value: \.downloadSizeBytesDescription) { module in
+            TableColumn("Download", value: \.downloadSizeBytesDescription) {
+                module in
                 Text(module.downloadSizeBytesDescription)
             }
             .width(70)
@@ -88,43 +91,18 @@ struct ModBrowser: View {
     var body: some View {
         ScrollViewReader { proxy in
             VStack {
-                let modules = instance.compatibleModules.compactMap {
-                    store.modules[id: $0]
-                }
+                let searchResults = state.searchModules(store.modules, instance: instance)
 
-                table(modules: modules)
+                table(modules: searchResults.elements)
             }
             .navigationTitle("Mod Browser")
             .navigationSubtitle(instance.name)
             .focusedSceneValue(\.selectedGameInstance, instance)
             .toolbar {
                 ModBrowserToolbar(instance: instance)
+
                 ToolbarItemGroup {
                     Spacer()
-                    Menu {
-                        Toggle(isOn: .constant(true)) {
-                            Label("Compatible", systemSymbol: .bolt)
-//                                .labelStyle(.titleAndIcon)
-                        }
-                        Toggle(isOn: .constant(false)) {
-                            Label("Incompatible", systemSymbol: .boltSlash)
-//                                .labelStyle(.titleAndIcon)
-                        }
-                        Toggle(isOn: .constant(false)) {
-                            Label("Installed", systemSymbol: .externaldrive)
-//                                .labelStyle(.titleAndIcon)
-                        }
-                        Toggle(isOn: .constant(false)) {
-                            Label("Not Installed", systemSymbol: .externaldriveBadgeXmark)
-//                                .labelStyle(.titleAndIcon)
-                        }
-                        Toggle(isOn: .constant(false)) {
-                            Label("Upgradable", systemSymbol: .arrowshapeUp)
-//                                .labelStyle(.titleAndIcon)
-                        }
-                    } label: {
-                        Label("Filters", systemSymbol: .line3HorizontalDecreaseCircle)
-                    }
                     Button("Toggle Inspector", systemSymbol: .sidebarTrailing) {
                         showInspector.toggle()
                     }
@@ -142,20 +120,53 @@ struct ModBrowser: View {
                 ModInspector()
             }
             .searchable(
-                text: $state.searchText,
-                editableTokens: $state.searchTokens
+                text: $state.search.text,
+                editableTokens: $state.search.tokens,
+                isPresented: $state.isSearchPresented
             ) { $token in
-                if let searchTerm = token.searchTerm {
-                    Picker(selection: $token.category) {
-                        Text("Name").tag(ModSearchToken.Category.name)
-                        Text("Author").tag(ModSearchToken.Category.author)
-                        Text("Abstract").tag(ModSearchToken.Category.author)
-                        Text("Depends").tag(ModSearchToken.Category.author)
-                    } label: {
-                        Text("\(searchTerm)")
+                Picker(selection: $token.category) {
+                    ForEach(ModSearchToken.Category.allCases) { category in
+                        Text(category.localizedStringResource)
                     }
-                } else {
-                    Text(token.category.localizedStringResource)
+                } label: {
+                    Text("\(token.searchTerm)")
+                }
+            }
+            .searchSuggestions {
+                let text = state.search.text
+                if !text.isEmpty {
+                    Section("Details") {
+                        Text("Name Contains \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .name,
+                                searchTerm: state.search.text))
+                        Text("Description Contains \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .abstract,
+                                searchTerm: state.search.text))
+                        Text("Author Contains \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .author,
+                                searchTerm: state.search.text))
+                    }
+                    Section("Relationships") {
+                        Text("Depends on \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .depends,
+                                searchTerm: state.search.text))
+                        Text("Recommends \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .recommends,
+                                searchTerm: state.search.text))
+                        Text("Suggests \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .suggests,
+                                searchTerm: state.search.text))
+                        Text("Conflicts with \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .conflicts,
+                                searchTerm: state.search.text))
+                    }
                 }
             }
             .task {
@@ -183,6 +194,16 @@ struct ModBrowser: View {
             .onAppear {
                 state.scrollProxy = proxy
             }
+            .onChange(of: state.modulePendingReveal) {
+                if let request = state.modulePendingReveal {
+                    // Scroll to requested value, and do it after the search has been recalculated.
+                    Task {
+                        proxy.scrollTo(request, anchor: .leading)
+                    }
+                    state.modulePendingReveal = nil
+                }
+            }
+            .focusedSceneValue(\.modBrowserState, state)
             .environment(state)
         }
     }
@@ -196,52 +217,6 @@ extension ModBrowser: CkanActionDelegate {
         await MainActor.run {
             showLoading = true
             loadProgress = Double(progress.percentCompletion)
-        }
-    }
-}
-
-private struct ModBrowserToolbar: ToolbarContent {
-    var instance: GameInstance
-
-    @State private var isRenamingInstance = false
-    @State private var editedInstanceName = ""
-
-    @Environment(Store.self) private var store: Store?
-
-    var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .navigation) {
-            Button("Edit Instance", systemSymbol: .pencilLine) {
-                store?.instanceBeingRenamed = instance
-            }
-            .help("Edit this game instance")
-            .popover(isPresented: $isRenamingInstance, arrowEdge: Edge.bottom) {
-                Form {
-                    TextField("Instance Name:", text: $editedInstanceName)
-                        .onAppear {
-                            editedInstanceName = instance.name
-                        }
-                        .onSubmit {
-                            instance.rename(editedInstanceName)
-                        }
-                    Button("Done") {
-                        isRenamingInstance = false
-                    }
-                }
-                .padding()
-                .frame(width: 400)
-            }
-            .onChange(of: store?.instanceBeingRenamed) {
-                isRenamingInstance = store?.instanceBeingRenamed == instance
-            }
-            .onChange(of: isRenamingInstance) {
-                if !isRenamingInstance {
-                    instance.rename(editedInstanceName)
-
-                    if store?.instanceBeingRenamed == instance {
-                        store?.instanceBeingRenamed = nil
-                    }
-                }
-            }
         }
     }
 }

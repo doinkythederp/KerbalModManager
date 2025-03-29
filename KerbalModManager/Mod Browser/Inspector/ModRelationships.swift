@@ -141,15 +141,13 @@ private struct ModRelationshipsSection<Header: View, Help: View>: View {
     }
 
     func viewRelationshipTarget(_ targetId: String) {
-        if store.modules.ids.contains(targetId) {
-            // This is a real module
-
-            state.selectedModules = [targetId]
-            state.scrollProxy?.scrollTo(targetId, anchor: .leading)
-        } else {
-            // Something `satisfies` this relationship, it's not a real module
-
-            // TODO: add this once there is searching
+        if let module = store.modules[id: targetId] {
+            state.reveal(module)
+            return
         }
+
+        // Something `satisfies` this relationship, it's not a real module
+
+        // TODO: add this once there is searching
     }
 }

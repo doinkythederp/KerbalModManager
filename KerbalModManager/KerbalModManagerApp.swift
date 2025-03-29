@@ -24,6 +24,8 @@ struct KerbalModManagerApp: App {
         .defaultSize(width: 800, height: 600)
         .commands {
             InstanceCommands()
+            InspectorCommands()
+            ModBrowserCommands()
         }
         .environment(store)
     }
