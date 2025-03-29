@@ -10,6 +10,7 @@ import Foundation
 
 @Observable
 public class CkanModule: Identifiable {
+
     public var id: String
     public var name: String
     public var version: String
@@ -21,10 +22,13 @@ public class CkanModule: Identifiable {
     public var licenses: [String]
     public var resources: Resources
     public var localizations: [Locale]
+    public var tags: [String]
+    public var releaseDate: Date
 
     public var releaseStatus: ReleaseStatus
     public var replacedBy: Relationship?
 
+    public var provides: [String]
     public var conflicts: [Relationship]
     public var depends: [Relationship]
     public var recommends: [Relationship]
@@ -38,10 +42,7 @@ public class CkanModule: Identifiable {
     public var downloadUrls: [URL]
     public var downloadSizeBytes: UInt
     public var installSizeBytes: UInt
-
-//    public var tags: [String]
-//    public var releaseDate: Date
-//    public var downloadCount: UInt
+    public var downloadCount: UInt
 
     public struct Resources {
         public var homepage: String?
@@ -159,15 +160,15 @@ public class CkanModule: Identifiable {
             self.version = version
         }
     }
-
+    
     public init(
         id: String, name: String, version: String, abstract: String,
         description: String? = nil, kind: CkanModule.Kind = .package,
         authors: [String] = [],
-        licenses: [String] = [], resources: CkanModule.Resources = .init(),
-        localizations: [Locale] = [],
+        licenses: [String] = [], resources: CkanModule.Resources,
+        localizations: [Locale] = [], tags: [String] = [], releaseDate: Date,
         releaseStatus: CkanModule.ReleaseStatus = .stable,
-        replacedBy: CkanModule.Relationship? = nil,
+        replacedBy: CkanModule.Relationship? = nil, provides: [String] = [],
         conflicts: [CkanModule.Relationship] = [],
         depends: [CkanModule.Relationship] = [],
         recommends: [CkanModule.Relationship] = [],
@@ -175,8 +176,9 @@ public class CkanModule: Identifiable {
         supports: [CkanModule.Relationship] = [],
         kspVersion: GameVersion? = nil,
         kspVersionMax: GameVersion? = nil, kspVersionMin: GameVersion? = nil,
-        downloadUrls: [URL] = [], downloadSizeBytes: UInt = 0,
-        installSizeBytes: UInt = 0
+        downloadUrls: [URL] = [], downloadSizeBytes: UInt,
+        installSizeBytes: UInt = 0,
+        downloadCount: UInt
     ) {
         self.id = id
         self.name = name
@@ -188,8 +190,11 @@ public class CkanModule: Identifiable {
         self.licenses = licenses
         self.resources = resources
         self.localizations = localizations
+        self.tags = tags
+        self.releaseDate = releaseDate
         self.releaseStatus = releaseStatus
         self.replacedBy = replacedBy
+        self.provides = provides
         self.conflicts = conflicts
         self.depends = depends
         self.recommends = recommends
@@ -201,6 +206,7 @@ public class CkanModule: Identifiable {
         self.downloadUrls = downloadUrls
         self.downloadSizeBytes = downloadSizeBytes
         self.installSizeBytes = installSizeBytes
+        self.downloadCount = downloadCount
     }
 }
 

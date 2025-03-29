@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F65555D62D97E693002DF306 /* WrappingHStack in Frameworks */ = {isa = PBXBuildFile; productRef = F65555D52D97E693002DF306 /* WrappingHStack */; };
 		F6758BD42D9137F20014836F /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = F6758BD32D9137F20014836F /* IdentifiedCollections */; };
 		F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; };
 		F69344C72D768BCA00DDB88D /* CkanAPI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		F6C84E352D94C1BD00863C5B /* WrappingHStack in Frameworks */ = {isa = PBXBuildFile; productRef = F6C84E342D94C1BD00863C5B /* WrappingHStack */; };
 		F6E3E2582D8E7B3300755A7A /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */; };
 /* End PBXBuildFile section */
 
@@ -80,7 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6C84E352D94C1BD00863C5B /* WrappingHStack in Frameworks */,
+				F65555D62D97E693002DF306 /* WrappingHStack in Frameworks */,
 				F6758BD42D9137F20014836F /* IdentifiedCollections in Frameworks */,
 				F6E3E2582D8E7B3300755A7A /* SFSafeSymbols in Frameworks */,
 				F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */,
@@ -158,7 +158,7 @@
 				F69344C42D768BCA00DDB88D /* CkanAPI */,
 				F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */,
 				F6758BD32D9137F20014836F /* IdentifiedCollections */,
-				F6C84E342D94C1BD00863C5B /* WrappingHStack */,
+				F65555D52D97E693002DF306 /* WrappingHStack */,
 			);
 			productName = KerbalModManager;
 			productReference = F69344942D768B2D00DDB88D /* KerbalModManager.app */;
@@ -245,7 +245,7 @@
 			packageReferences = (
 				F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
 				F6758BD22D9137F20014836F /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
-				F6C84E332D94C1BD00863C5B /* XCRemoteSwiftPackageReference "WrappingHStack" */,
+				F65555D42D97E693002DF306 /* XCRemoteSwiftPackageReference "WrappingHStack" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F69344952D768B2D00DDB88D /* Products */;
@@ -607,20 +607,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F65555D42D97E693002DF306 /* XCRemoteSwiftPackageReference "WrappingHStack" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ksemianov/WrappingHStack";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
 		F6758BD22D9137F20014836F /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-identified-collections.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.1.1;
-			};
-		};
-		F6C84E332D94C1BD00863C5B /* XCRemoteSwiftPackageReference "WrappingHStack" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/dkk/WrappingHStack";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.2.11;
 			};
 		};
 		F6E3E2562D8E7B3300755A7A /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
@@ -634,6 +634,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F65555D52D97E693002DF306 /* WrappingHStack */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F65555D42D97E693002DF306 /* XCRemoteSwiftPackageReference "WrappingHStack" */;
+			productName = WrappingHStack;
+		};
 		F6758BD32D9137F20014836F /* IdentifiedCollections */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F6758BD22D9137F20014836F /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
@@ -642,11 +647,6 @@
 		F69344C42D768BCA00DDB88D /* CkanAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CkanAPI;
-		};
-		F6C84E342D94C1BD00863C5B /* WrappingHStack */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F6C84E332D94C1BD00863C5B /* XCRemoteSwiftPackageReference "WrappingHStack" */;
-			productName = WrappingHStack;
 		};
 		F6E3E2572D8E7B3300755A7A /* SFSafeSymbols */ = {
 			isa = XCSwiftPackageProductDependency;

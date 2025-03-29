@@ -36,6 +36,13 @@ extension FocusedValues {
         var text = ""
         var tokens: [ModSearchToken] = []
 
+        init(filters: Set<SimpleModFilter> = [.compatible], text: String = "", tokens: [ModSearchToken] = []) {
+            self.filters = filters
+            self.text = text
+            self.tokens = tokens
+        }
+
+
         mutating func clearSearchBox() {
             text = ""
             tokens = []
@@ -140,6 +147,7 @@ extension CkanModule {
 
         return name.localizedCaseInsensitiveContains(query)
             || authors.contains { $0.localizedCaseInsensitiveContains(query) }
+            || tags.contains { $0.localizedCaseInsensitiveContains(query) }
             || abstract.localizedCaseInsensitiveContains(query)
     }
 }
@@ -219,6 +227,8 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
         case recommends
         case suggests
         case conflicts
+        case provides
+        case tags
 
         var localizedStringResource: LocalizedStringResource {
             switch self {
@@ -236,6 +246,10 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
                 "Suggests"
             case .conflicts:
                 "Conflicts"
+            case .provides:
+                "Satisfies"
+            case .tags:
+                "Tag"
             }
         }
     }
@@ -252,11 +266,11 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
     ) -> Bool {
         switch self.category {
         case .name:
-            module.name.contains(searchTerm)
+            module.name.localizedCaseInsensitiveContains(searchTerm)
         case .author:
             module.authors.containsCaseInsensitiveString(searchTerm)
         case .abstract:
-            module.abstract.contains(searchTerm)
+            module.abstract.localizedCaseInsensitiveContains(searchTerm)
         case .depends:
             Self.flattenRelationships(module.depends, modules: modules)
                 .containsCaseInsensitiveString(searchTerm)
@@ -269,6 +283,10 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
         case .conflicts:
             Self.flattenRelationships(module.conflicts, modules: modules)
                 .containsCaseInsensitiveString(searchTerm)
+        case .provides:
+            module.provides.containsCaseInsensitiveString(searchTerm)
+        case .tags:
+            module.tags.containsCaseInsensitiveString(searchTerm)
         }
     }
 

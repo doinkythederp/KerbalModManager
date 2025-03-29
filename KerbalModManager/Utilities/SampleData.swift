@@ -39,7 +39,8 @@ extension CkanModule {
                 spacedock: "https://spacedock.info/mod/2539/Parallax",
                 repository: "https://github.com/Gameslinx/Tessellation"
             ),
-            // tags: ["plugin", "library", "graphics"],
+            tags: ["plugin", "library", "graphics"],
+            releaseDate: Date.now,
             depends: [
                 Relationship(direct: "Kopernicus"),
                 Relationship(direct: "Parallax-Textures"),
@@ -51,7 +52,8 @@ extension CkanModule {
             downloadUrls: [
                 URL(string: "https://spacedock.info/mod/2539/Parallax/download/1.0.1")!,
             ],
-            downloadSizeBytes: 445977
+            downloadSizeBytes: 445977,
+            downloadCount: 1_568_030
         )
     ]
 }

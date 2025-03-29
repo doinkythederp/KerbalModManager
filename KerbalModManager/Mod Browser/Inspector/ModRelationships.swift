@@ -146,8 +146,10 @@ private struct ModRelationshipsSection<Header: View, Help: View>: View {
             return
         }
 
-        // Something `satisfies` this relationship, it's not a real module
+        // Something `provides` this relationship, it's not a real module
 
-        // TODO: add this once there is searching
+        state.search.text = ""
+        state.search.filters = [.compatible]
+        state.search.tokens = [ModSearchToken(category: .provides, searchTerm: targetId)]
     }
 }

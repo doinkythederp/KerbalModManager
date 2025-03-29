@@ -8,6 +8,34 @@
 import CkanAPI
 import SwiftUI
 
+struct CustomTagView: View {
+    var name: String
+
+    @State private var addToSearch = false
+
+    @Environment(ModBrowserState.self)
+    private var modBrowserState: ModBrowserState?
+
+    var body: some View {
+        ModTagView {
+            Label(name, systemSymbol: .tag)
+        }
+        .onModifierKeysChanged(mask: .shift, initial: true) { old, new in
+            addToSearch = new.contains(.shift)
+        }
+        .onTapGesture {
+            let token = ModSearchToken(category: .tags, searchTerm: name)
+
+            if addToSearch {
+                modBrowserState?.search.tokens.append(token)
+            } else {
+                modBrowserState?.search = .init(tokens: [token])
+            }
+        }
+        .help("Click to search for other mods with this tag, or Shift-click to add to the current search.")
+    }
+}
+
 struct LicenseTagView: View {
     var license: String
 
@@ -80,7 +108,9 @@ struct ModTagView<Contents: View, PopoverContents: View>: View {
             .padding(.horizontal, 3)
             .padding(3)
             .background()
+            .containerShape(.capsule)
             .clipShape(.capsule)
+            .fixedSize()
 
         if let details {
             view

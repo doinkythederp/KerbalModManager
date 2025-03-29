@@ -63,14 +63,21 @@ struct ModBrowser: View {
             .width(min: 100, ideal: 100, max: 200)
             .customizationID("author")
 
-            TableColumn("Max KSP", value: \.kspVersionMaxDescription) {
+            TableColumn("Downloads", sortUsing: KeyPathComparator(\.downloadCount)) {
+                module in
+                Text(module.downloadCount.formatted())
+            }
+            .width(70)
+            .customizationID("downloadCount")
+
+            TableColumn("Max KSP", sortUsing: KeyPathComparator(\.kspVersionMax)) {
                 module in
                 Text(module.kspVersionMaxDescription)
             }
             .width(70)
             .customizationID("maxVersion")
 
-            TableColumn("Download", value: \.downloadSizeBytesDescription) {
+            TableColumn("Size", sortUsing: KeyPathComparator(\.downloadSizeBytes)) {
                 module in
                 Text(module.downloadSizeBytesDescription)
             }
@@ -148,6 +155,10 @@ struct ModBrowser: View {
                             .searchCompletion(ModSearchToken(
                                 category: .author,
                                 searchTerm: state.search.text))
+                        Text("Has Tag \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .tags,
+                                searchTerm: state.search.text))
                     }
                     Section("Relationships") {
                         Text("Depends on \"\(state.search.text)\"")
@@ -166,30 +177,15 @@ struct ModBrowser: View {
                             .searchCompletion(ModSearchToken(
                                 category: .conflicts,
                                 searchTerm: state.search.text))
+                        Text("Satisfies Dependencies for \"\(state.search.text)\"")
+                            .searchCompletion(ModSearchToken(
+                                category: .provides,
+                                searchTerm: state.search.text))
                     }
                 }
             }
             .task {
-                do {
-                    showLoading = true
-                    loadProgress = 0
-
-                    if !instance.hasPrepopulatedRegistry {
-                        try await store.client.prepopulateRegistry(
-                            for: instance, with: self)
-                    }
-
-                    loadProgress = 100
-
-                    try await store.loadModules(
-                        compatibleWith: instance, with: ckanActionDelegate)
-                    showLoading = false
-                } catch {
-                    print(error.localizedDescription)
-                    showLoading = false
-                    loadProgress = 0
-                    store.ckanError = error as? CkanError
-                }
+                await loadData()
             }
             .onAppear {
                 state.scrollProxy = proxy
@@ -205,6 +201,29 @@ struct ModBrowser: View {
             }
             .focusedSceneValue(\.modBrowserState, state)
             .environment(state)
+        }
+    }
+
+    func loadData() async {
+        do {
+            showLoading = true
+            loadProgress = 0
+
+            if !instance.hasPrepopulatedRegistry {
+                try await store.client.prepopulateRegistry(
+                    for: instance, with: self)
+            }
+
+            loadProgress = 100
+
+            try await store.loadModules(
+                compatibleWith: instance, with: ckanActionDelegate)
+            showLoading = false
+        } catch {
+            logger.error("Loading mod list failed: \(error.localizedDescription)")
+            showLoading = false
+            loadProgress = 0
+            store.ckanError = error
         }
     }
 }

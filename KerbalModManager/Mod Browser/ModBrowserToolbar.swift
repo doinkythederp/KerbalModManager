@@ -5,8 +5,8 @@
 //  Created by Lewis McClelland on 3/29/25.
 //
 
-import SwiftUI
 import CkanAPI
+import SwiftUI
 
 struct ModBrowserToolbar: ToolbarContent {
     var instance: GameInstance
@@ -67,8 +67,13 @@ struct ModBrowserToolbar: ToolbarContent {
                         isOn: binding)
                 }
             } label: {
-                Label("Filters", systemSymbol: .line3HorizontalDecreaseCircle)
-                    .foregroundColor(.red)
+                Label(
+                    "Filters",
+                    systemSymbol: state.search.filters.isEmpty
+                        ? .line3HorizontalDecreaseCircle
+                        : .line3HorizontalDecreaseCircleFill
+                )
+                .foregroundColor(.red)
             }
         }
     }

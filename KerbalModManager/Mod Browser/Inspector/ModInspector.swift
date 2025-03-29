@@ -5,8 +5,8 @@
 //  Created by Lewis McClelland on 3/28/25.
 //
 
-import SwiftUI
 import CkanAPI
+import SwiftUI
 import WrappingHStack
 
 struct ModInspector: View {
@@ -39,13 +39,36 @@ struct ModInspector: View {
                         }
                         .foregroundStyle(.secondary)
 
-                        WrappingHStack {
+                        let downloadStyle = if module.downloadCount > 100_000 {
+                            Color.green
+                        } else if module.downloadCount > 10_000 {
+                            Color.orange
+                        } else {
+                            Color.secondary
+                        }
+
+                        Label(
+                            "\(module.downloadCount) downloads",
+                            systemSymbol: .arrowDownCircleFill
+                        )
+                        .symbolRenderingMode(.hierarchical)
+                        .padding(.top, 1)
+                        .foregroundStyle(downloadStyle)
+
+                        WrappingHStack(
+                            alignment: .leading,
+                            horizontalSpacing: 3,
+                            verticalSpacing: 3
+                        ) {
                             ForEach(module.licenses, id: \.self) { license in
                                 LicenseTagView(license: license)
                             }
                             if module.releaseStatus != .stable {
                                 StabilityTagView(
                                     releaseStatus: module.releaseStatus)
+                            }
+                            ForEach(module.tags, id: \.self) { tag in
+                                CustomTagView(name: tag)
                             }
                         }
                     }
@@ -90,7 +113,11 @@ private struct DownloadSizeIndicator: View {
         if module.downloadSizeBytes + module.installSizeBytes > 0 {
             HStack(spacing: 5) {
                 Image(systemSymbol: .arrowDownCircle)
-                WrappingHStack(spacing: .constant(3)) {
+                WrappingHStack(
+                    alignment: .leading,
+                    horizontalSpacing: 3,
+                    verticalSpacing: 3
+                ) {
                     if module.downloadSizeBytes > 0 {
                         Text(
                             module.downloadSizeBytes
@@ -116,7 +143,6 @@ private struct DownloadSizeIndicator: View {
         }
     }
 }
-
 
 #Preview("Mod Inspector") {
     @Previewable @State var store = Store()

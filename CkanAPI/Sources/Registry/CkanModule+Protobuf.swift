@@ -20,9 +20,12 @@ extension CkanModule {
             licenses: ckan.licenses,
             resources: Resources(from: ckan.resources),
             localizations: ckan.localizations.map { Locale(identifier: $0) },
+            tags: ckan.tags,
+            releaseDate: ckan.releaseDate.date,
 
             releaseStatus: ReleaseStatus(from: ckan.releaseStatus),
 
+            provides: ckan.provides,
             conflicts: ckan.conflicts.map { Relationship(from: $0) },
             depends: ckan.depends.map { Relationship(from: $0) },
             recommends: ckan.recommends.map { Relationship(from: $0) },
@@ -31,7 +34,8 @@ extension CkanModule {
 
             downloadUrls: ckan.downloadUris.compactMap { URL(string: $0) },
             downloadSizeBytes: UInt(ckan.downloadSizeBytes),
-            installSizeBytes: UInt(ckan.installSizeBytes)
+            installSizeBytes: UInt(ckan.installSizeBytes),
+            downloadCount: UInt(ckan.downloadCount)
         )
 
         if ckan.hasDescription_p {
