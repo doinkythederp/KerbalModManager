@@ -8,6 +8,7 @@
 import CkanAPI
 import SwiftUI
 import WrappingHStack
+import SFSafeSymbols
 
 struct ModBrowser: View {
     var instance: GameInstance
@@ -19,7 +20,7 @@ struct ModBrowser: View {
     @State private var showLoading = false
 
     @SceneStorage("ModBrowserShowInspector")
-    private var showInspector = true
+    var showInspector = true
 
     @SceneStorage("ModBrowserTableConfig")
     private var columnCustomization: TableColumnCustomization<CkanModule>
@@ -100,6 +101,30 @@ struct ModBrowser: View {
                 ModBrowserToolbar(instance: instance)
                 ToolbarItemGroup {
                     Spacer()
+                    Menu {
+                        Toggle(isOn: .constant(true)) {
+                            Label("Compatible", systemSymbol: .bolt)
+//                                .labelStyle(.titleAndIcon)
+                        }
+                        Toggle(isOn: .constant(false)) {
+                            Label("Incompatible", systemSymbol: .boltSlash)
+//                                .labelStyle(.titleAndIcon)
+                        }
+                        Toggle(isOn: .constant(false)) {
+                            Label("Installed", systemSymbol: .externaldrive)
+//                                .labelStyle(.titleAndIcon)
+                        }
+                        Toggle(isOn: .constant(false)) {
+                            Label("Not Installed", systemSymbol: .externaldriveBadgeXmark)
+//                                .labelStyle(.titleAndIcon)
+                        }
+                        Toggle(isOn: .constant(false)) {
+                            Label("Upgradable", systemSymbol: .arrowshapeUp)
+//                                .labelStyle(.titleAndIcon)
+                        }
+                    } label: {
+                        Label("Filters", systemSymbol: .line3HorizontalDecreaseCircle)
+                    }
                     Button("Toggle Inspector", systemSymbol: .sidebarTrailing) {
                         showInspector.toggle()
                     }
@@ -114,7 +139,24 @@ struct ModBrowser: View {
                 .presentationSizing(.form)
             }
             .inspector(isPresented: $showInspector) {
-                ModBrowserInspector()
+                ModInspector()
+            }
+            .searchable(
+                text: $state.searchText,
+                editableTokens: $state.searchTokens
+            ) { $token in
+                if let searchTerm = token.searchTerm {
+                    Picker(selection: $token.category) {
+                        Text("Name").tag(ModSearchToken.Category.name)
+                        Text("Author").tag(ModSearchToken.Category.author)
+                        Text("Abstract").tag(ModSearchToken.Category.author)
+                        Text("Depends").tag(ModSearchToken.Category.author)
+                    } label: {
+                        Text("\(searchTerm)")
+                    }
+                } else {
+                    Text(token.category.localizedStringResource)
+                }
             }
             .task {
                 do {
@@ -154,109 +196,6 @@ extension ModBrowser: CkanActionDelegate {
         await MainActor.run {
             showLoading = true
             loadProgress = Double(progress.percentCompletion)
-        }
-    }
-}
-
-private extension CkanModule {
-    var versionDescription: String {
-        if version.starts(with: "v") {
-            version
-        } else {
-            "v\(version)"
-        }
-    }
-    var authorsDescription: String {
-        authors.formatted()
-    }
-
-    static func formatVersion(_ version: GameVersion?) -> LocalizedStringResource {
-        return if let version {
-            "\(version.description)"
-        } else {
-            "any"
-        }
-    }
-
-    var kspVersionMaxDescription: String {
-        String(localized: Self.formatVersion(kspVersionMax))
-    }
-
-    var downloadSizeBytesDescription: String {
-        downloadSizeBytes.formatted(.byteCount(style: .file))
-    }
-}
-
-private struct ModBrowserInspector: View {
-    @State private var showRelationships = true
-
-    @Environment(Store.self) private var store
-    @Environment(ModBrowserState.self) private var state
-
-    var body: some View {
-        if let moduleId = state.selectedModules.first,
-            let module = store.modules[id: moduleId]
-        {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 15) {
-
-                    VStack(alignment: .leading) {
-                        HStack(alignment: .bottom) {
-                            Text(module.name)
-                                .font(.title2.bold())
-
-                            Text(module.versionDescription)
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        HStack(alignment: .top, spacing: 5) {
-                            Text("By:")
-                            Text(module.authorsDescription)
-                                .textSelection(.enabled)
-                        }
-                        .foregroundStyle(.secondary)
-
-                        WrappingHStack {
-                            ForEach(module.licenses, id: \.self) { license in
-                                LicenseTagView(license: license)
-                            }
-                            if module.releaseStatus != .stable {
-                                StabilityTagView(
-                                    releaseStatus: module.releaseStatus)
-                            }
-                        }
-                    }
-
-                    Text(module.abstract)
-                        .textSelection(.enabled)
-
-                    if let description = module.description {
-                        Text(description)
-                            .textSelection(.enabled)
-                    }
-
-                    ModResourcesView(module: module)
-                    ModRelationshipsView(module: module)
-
-                    Spacer()
-                }
-                .padding()
-            }
-            .safeAreaInset(edge: .bottom) {
-                HStack {
-                    DownloadSizeIndicator(module: module)
-                    Spacer()
-                    Button("Install") {}
-                }
-                .padding()
-                .background()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .id(moduleId)
-        } else {
-            ContentUnavailableView(
-                "Select a Mod", systemSymbol: .magnifyingglassCircle)
         }
     }
 }
@@ -307,248 +246,7 @@ private struct ModBrowserToolbar: ToolbarContent {
     }
 }
 
-private struct DownloadSizeIndicator: View {
-    var module: CkanModule
-
-    var body: some View {
-        if module.downloadSizeBytes + module.installSizeBytes > 0 {
-            HStack(spacing: 5) {
-                Image(systemSymbol: .arrowDownCircle)
-                WrappingHStack(spacing: .constant(3)) {
-                    if module.downloadSizeBytes > 0 {
-                        Text(
-                            module.downloadSizeBytes
-                                .formatted(.byteCount(style: .file))
-                        )
-                    }
-
-                    if module.installSizeBytes > 0 {
-                        let value = module.installSizeBytes
-                            .formatted(.byteCount(style: .file))
-
-                        if module.downloadSizeBytes > 0 {
-                            Text("(\(value) on disk)")
-                        } else {
-                            Text("\(value) on disk")
-                        }
-                    }
-
-                }
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-private struct ModResourcesView: View {
-    var module: CkanModule
-
-    @State private var isExpanded = true
-
-    var body: some View {
-        DisclosureGroup("Details and Links", isExpanded: $isExpanded) {
-            Grid(alignment: .leading) {
-                let collection = module.resources.collection
-                ForEach(collection.elements, id: \.key) { element in
-                    GridRow {
-                        Text("\(element.key):")
-                            .gridColumnAlignment(.trailing)
-
-                        let url = URL(string: element.value)
-                        let text = Text(
-                            element.value
-                                .trimmingPrefix(/https?:\/\//)
-                        )
-                        .lineLimit(1)
-
-                        Group {
-                            if let url {
-                                Link(destination: url) {
-                                    text
-                                }
-                                .contextMenu {
-                                    Button("Copy Link") {
-                                        NSPasteboard.general.copy(url)
-                                    }
-                                }
-                            } else {
-                                text
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-
-                if !module.localizations.isEmpty {
-                    GridRow(alignment: .top) {
-                        Text("Languages:")
-                            .gridColumnAlignment(.trailing)
-
-                        Text(
-                            module.localizations
-                                .compactMap {
-                                    Locale.current
-                                        .localizedString(
-                                            forLanguageCode: $0.identifier)
-                                }
-                                .formatted()
-                        )
-                        .textSelection(.enabled)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct ModRelationshipsView: View {
-    var module: CkanModule
-
-    @State private var isExpanded = true
-
-    var body: some View {
-        DisclosureGroup("Relationships", isExpanded: $isExpanded) {
-            VStack(alignment: .leading, spacing: 10) {
-                ModRelationshipsSection(module.depends) {
-                    Label("Dependencies", systemSymbol: .linkCircle)
-                } help: {
-                    Text(
-                        "This mod only functions when the following mods are installed alongside it."
-                    )
-                }
-                ModRelationshipsSection(module.recommends) {
-                    Label("Recommendations", systemSymbol: .starCircle)
-                } help: {
-                    Text(
-                        "This mod works best when the following mods are installed alongside it."
-                    )
-                }
-                ModRelationshipsSection(module.suggests) {
-                    Label("Suggestions", systemSymbol: .heartCircle)
-                } help: {
-                    Text(
-                        "This mod is enhanced when the following mods are installed, but they might not be for everyone."
-                    )
-                }
-                ModRelationshipsSection(module.conflicts) {
-                    Label("Conflicts", systemSymbol: .xmarkCircle)
-                } help: {
-                    Text(
-                        "This mod does not work properly when the following mods are installed."
-                    )
-                }
-            }
-        }
-    }
-}
-
-private struct ModRelationshipsSection<Header: View, Help: View>: View {
-    var relationships: [CkanModule.Relationship]
-
-    var header: () -> Header
-    var help: () -> Help
-
-    init(
-        _ relationships: [CkanModule.Relationship],
-        @ViewBuilder header: @escaping () -> Header,
-        @ViewBuilder help: @escaping () -> Help
-    ) {
-        self.relationships = relationships
-        self.header = header
-        self.help = help
-    }
-
-    @State private var helpShown = false
-    @Environment(Store.self) private var store
-    @Environment(ModBrowserState.self) private var state
-
-    var body: some View {
-        Section {
-            if relationships.isEmpty {
-                Text("None")
-                    .foregroundStyle(.secondary)
-                    .padding(2)
-                    .frame(maxWidth: .infinity)
-            } else {
-                VStack(alignment: .leading) {
-                    ForEach(relationships) { relationship in
-                        self.relationship(relationship)
-                    }
-                }
-                .padding(.leading)
-            }
-        } header: {
-            HStack {
-                header()
-
-                HelpLink {
-                    helpShown.toggle()
-                }
-                .popover(isPresented: $helpShown) {
-                    help().padding()
-                }
-                .controlSize(.small)
-            }
-        }
-    }
-
-    @ViewBuilder
-    func relationship(
-        _ relationship: CkanModule.Relationship
-    ) -> some View {
-        switch relationship.type {
-        case .direct(let direct):
-            GroupBox {
-                HStack {
-                    let name = store.modules[id: direct.name]?.name ?? direct.name
-
-                    Text(name)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Spacer()
-                    Button {
-                        viewRelationshipTarget(direct.name)
-                    } label: {
-                        if store.modules.ids.contains(direct.name) {
-                            Label("View", systemSymbol: .eye)
-                        } else {
-                            Label("Search", systemSymbol: .magnifyingglass)
-                        }
-
-                    }
-                    .controlSize(.small)
-                }
-                .labelStyle(.iconOnly)
-            }
-        case .anyOf(allowedModules: let allowed):
-            Text("One of:")
-                .font(.caption)
-                .padding(.top, 1)
-            VStack {
-                ForEach(allowed) { item in
-                    AnyView(self.relationship(item))
-                }
-            }
-            .padding(.leading)
-            .padding(.bottom, 4)
-        }
-    }
-
-    func viewRelationshipTarget(_ targetId: String) {
-        if store.modules.ids.contains(targetId) {
-            // This is a real module
-
-            state.selectedModules = [targetId]
-            state.scrollProxy?.scrollTo(targetId, anchor: .center)
-        } else {
-            // Something `satisfies` this relationship, it's not a real module
-
-            // TODO: add this once there is searching
-        }
-    }
-}
-
-#Preview {
+#Preview("Mod Browser") {
     @Previewable @State var store = Store()
 
     ErrorAlertView {
@@ -559,19 +257,13 @@ private struct ModRelationshipsSection<Header: View, Help: View>: View {
 
 }
 
-#Preview("Inspector") {
+#Preview("Mod Browser (no inspector)") {
     @Previewable @State var store = Store()
-    @Previewable @State var state = ModBrowserState()
 
     ErrorAlertView {
-        ModBrowserInspector()
-            .onAppear {
-                store.modules.append(contentsOf: CkanModule.samples)
-                state.selectedModules = [CkanModule.samples.first!.id]
-            }
+        ModBrowser(instance: GameInstance.samples.first!, showInspector: false)
     }
-    .frame(width: 270, height: 500)
+    .frame(width: 700, height: 450)
     .environment(store)
-    .environment(state)
 
 }
