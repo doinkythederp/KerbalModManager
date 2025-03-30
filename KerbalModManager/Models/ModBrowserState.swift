@@ -27,6 +27,7 @@ extension FocusedValues {
     var search = Search()
     @ObservationIgnored private var searchResults: OrderedSet<CkanModule.ID>?
     @ObservationIgnored private var searchResultsHash: Int?
+    @ObservationIgnored var preferNonDestructiveSearches = false
 
     /// This module will be scrolled to after the next render.
     var modulePendingReveal: CkanModule.ID?
@@ -42,6 +43,9 @@ extension FocusedValues {
             self.tokens = tokens
         }
 
+        mutating func reset() {
+            self = Search()
+        }
 
         mutating func clearSearchBox() {
             text = ""
@@ -81,7 +85,7 @@ extension FocusedValues {
         }
     }
 
-    func searchModules(
+    func queryModules(
         _ modules: IdentifiedArrayOf<CkanModule>,
         instance: GameInstance
     ) -> IdentifiedArrayOf<CkanModule> {
@@ -116,7 +120,7 @@ extension FocusedValues {
             search.filters = []
 
             // This won't cause an infinite loop because we set `search.filters` to an empty value.
-            return searchModules(modules, instance: instance)
+            return queryModules(modules, instance: instance)
         }
 
         searchResults = results.ids
@@ -126,10 +130,19 @@ extension FocusedValues {
     }
 
     /// Show the given module to the user.
-    func reveal(_ module: CkanModule) {
+    func reveal(module: CkanModule) {
         search.clearSearchBox()
         selectedModules = [module.id]
         modulePendingReveal = module.id
+    }
+
+    /// Search for the given tokens, choosing to reset the search box based on the users' preference.
+    func search(tokens: [ModSearchToken]) {
+        if !preferNonDestructiveSearches {
+            search.reset()
+        }
+        
+        search.tokens.append(contentsOf: tokens)
     }
 
     init() {}

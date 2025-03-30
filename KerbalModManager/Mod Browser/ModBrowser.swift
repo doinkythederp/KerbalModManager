@@ -98,7 +98,7 @@ struct ModBrowser: View {
     var body: some View {
         ScrollViewReader { proxy in
             VStack {
-                let searchResults = state.searchModules(store.modules, instance: instance)
+                let searchResults = state.queryModules(store.modules, instance: instance)
 
                 table(modules: searchResults.elements)
             }
@@ -198,6 +198,10 @@ struct ModBrowser: View {
                     }
                     state.modulePendingReveal = nil
                 }
+            }
+            // Holding Shift prevents the app from overwriting your current search
+            .onModifierKeysChanged(mask: .shift, initial: true) { old, new in
+                state.preferNonDestructiveSearches = new.contains(.shift)
             }
             .focusedSceneValue(\.modBrowserState, state)
             .environment(state)

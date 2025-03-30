@@ -11,8 +11,6 @@ import SwiftUI
 struct CustomTagView: View {
     var name: String
 
-    @State private var addToSearch = false
-
     @Environment(ModBrowserState.self)
     private var modBrowserState: ModBrowserState?
 
@@ -20,17 +18,10 @@ struct CustomTagView: View {
         ModTagView {
             Label(name, systemSymbol: .tag)
         }
-        .onModifierKeysChanged(mask: .shift, initial: true) { old, new in
-            addToSearch = new.contains(.shift)
-        }
         .onTapGesture {
-            let token = ModSearchToken(category: .tags, searchTerm: name)
-
-            if addToSearch {
-                modBrowserState?.search.tokens.append(token)
-            } else {
-                modBrowserState?.search = .init(tokens: [token])
-            }
+            modBrowserState?.search(tokens: [
+                ModSearchToken(category: .tags, searchTerm: name)
+            ])
         }
         .help("Click to search for other mods with this tag, or Shift-click to add to the current search.")
     }
