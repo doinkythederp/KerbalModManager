@@ -34,7 +34,7 @@ struct ModBrowser: View {
     func table(modules: [CkanModule]) -> some View {
         Table(
             modules.sorted(using: state.sortOrder),
-            selection: $state.selectedModules,
+            selection: $state.selectedModule,
             sortOrder: $state.sortOrder,
             columnCustomization: $columnCustomization
         ) {

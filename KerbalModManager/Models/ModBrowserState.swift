@@ -19,7 +19,7 @@ extension FocusedValues {
 }
 
 @MainActor @Observable final class ModBrowserState {
-    var selectedModules = Set<CkanModule.ID>()
+    var selectedModule: CkanModule.ID?
     var sortOrder = [KeyPathComparator(\CkanModule.name)]
     var scrollProxy: ScrollViewProxy?
 
@@ -132,7 +132,7 @@ extension FocusedValues {
     /// Show the given module to the user.
     func reveal(module: CkanModule) {
         search.clearSearchBox()
-        selectedModules = [module.id]
+        selectedModule = module.id
         modulePendingReveal = module.id
     }
 

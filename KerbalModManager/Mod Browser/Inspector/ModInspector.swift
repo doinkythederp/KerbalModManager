@@ -16,7 +16,7 @@ struct ModInspector: View {
     @Environment(ModBrowserState.self) private var state
 
     var body: some View {
-        if let moduleId = state.selectedModules.first,
+        if let moduleId = state.selectedModule,
             let module = store.modules[id: moduleId]
         {
             ScrollView {
@@ -152,7 +152,7 @@ private struct DownloadSizeIndicator: View {
         ModInspector()
             .onAppear {
                 store.modules.append(contentsOf: CkanModule.samples)
-                state.selectedModules = [CkanModule.samples.first!.id]
+                state.selectedModule = CkanModule.samples.first!.id
             }
     }
     .frame(width: 270, height: 500)
