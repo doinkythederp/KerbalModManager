@@ -6,13 +6,25 @@
 //
 
 import Foundation
+import IdentifiedCollections
 
 extension CkanModule {
     convenience init(from ckan: Ckan_Module) {
         self.init(
             id: ckan.identifier,
+            releases: IdentifiedArray(
+                uniqueElements: ckan.releases.map { release in
+                    CkanModule.Release(id: ckan.identifier, from: release)
+                }))
+    }
+}
+
+extension CkanModule.Release {
+    convenience init(id: String, from ckan: Ckan_Module.Release) {
+        self.init(
+            id: id,
             name: ckan.name,
-            version: ckan.version,
+            version: CkanModule.Version(ckan.version),
 
             abstract: ckan.abstract,
             kind: Kind(from: ckan.kind),
@@ -23,7 +35,7 @@ extension CkanModule {
             tags: ckan.tags,
             releaseDate: ckan.releaseDate.date,
 
-            releaseStatus: ReleaseStatus(from: ckan.releaseStatus),
+            releaseStatus: Status(from: ckan.releaseStatus),
 
             provides: ckan.provides,
             conflicts: ckan.conflicts.map { Relationship(from: $0) },
@@ -56,7 +68,7 @@ extension CkanModule {
     }
 }
 
-extension CkanModule.Resources {
+extension CkanModule.Release.Resources {
     init(from ckan: Ckan_Module.Resources) {
         if ckan.hasHomepage { homepage = ckan.homepage }
         if ckan.hasSpacedock { spacedock = ckan.spacedock }
@@ -75,7 +87,7 @@ extension CkanModule.Resources {
     }
 }
 
-extension CkanModule.Kind {
+extension CkanModule.Release.Kind {
     init(from ckan: Ckan_Module.Kind) {
         self =
             switch ckan {
@@ -87,7 +99,7 @@ extension CkanModule.Kind {
     }
 }
 
-extension CkanModule.ReleaseStatus {
+extension CkanModule.Release.Status {
     init(from ckan: Ckan_Module.ReleaseStatus) {
         self =
             switch ckan {
@@ -99,7 +111,7 @@ extension CkanModule.ReleaseStatus {
     }
 }
 
-extension CkanModule.Relationship {
+extension CkanModule.Release.Relationship {
     init(from ckan: Ckan_Module.Relationship) {
         if ckan.hasChoiceHelpText {
             choiceHelpText = ckan.choiceHelpText
@@ -118,7 +130,7 @@ extension CkanModule.Relationship {
     }
 }
 
-extension CkanModule.DirectRelationship {
+extension CkanModule.Release.DirectRelationship {
     init(from ckan: Ckan_Module.Relationship.DirectRelationship) {
         name = ckan.name
         if ckan.hasMaxVersion {

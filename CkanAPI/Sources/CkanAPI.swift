@@ -45,7 +45,7 @@ public actor CKANClient {
                 response in
                 for try await replyMsg in response.messages {
                     print("Got reply")
-//                    dump(replyMsg)
+                    //                    dump(replyMsg)
 
                     var status = replyMsg.status
                     try await self.handleReply(
@@ -137,7 +137,8 @@ public actor CKANClient {
             status in
             return switch status {
             case .registryOperationReply(let reply): reply
-            case .instanceOperationReply(let reply): throw CkanError(instance: reply)
+            case .instanceOperationReply(let reply):
+                throw CkanError(instance: reply)
             default: nil
             }
         }
@@ -214,22 +215,22 @@ public actor CKANClient {
     }
 
     func getCkanModules(
-        compatibleWith instanceName: String,
+        availableTo instanceName: String,
         with delegate: CkanActionDelegate
     )
         async throws(CkanError) -> [Ckan_Module]
     {
-        print("Getting instance list")
+        print("Getting available modules")
         let message = Ckan_ActionMessage.with {
-            $0.registryCompatibleModulesRequest =
-            Ckan_RegistryCompatibleModulesRequest.with {
-                $0.instanceName = instanceName
-            }
+            $0.registryAvailableModulesRequest =
+                Ckan_RegistryAvailableModulesRequest.with {
+                    $0.instanceName = instanceName
+                }
         }
 
         let reply = try await performRegistryAction(message, with: delegate)
 
-        guard case .compatibleModules(let list) = reply.results else {
+        guard case .availableModules(let list) = reply.results else {
             throw CkanError.responseNotReceived
         }
 
@@ -238,11 +239,11 @@ public actor CKANClient {
 
     @MainActor
     public func getModules(
-        compatibleWith instance: GameInstance,
+        availableTo instance: GameInstance,
         with delegate: CkanActionDelegate
     ) async throws(CkanError) -> [CkanModule] {
         let modules = try await getCkanModules(
-            compatibleWith: instance.name, with: delegate)
+            availableTo: instance.name, with: delegate)
         return modules.map { CkanModule(from: $0) }
     }
 

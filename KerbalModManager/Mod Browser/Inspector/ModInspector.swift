@@ -107,7 +107,7 @@ struct ModInspector: View {
 }
 
 private struct DownloadSizeIndicator: View {
-    var module: CkanModule
+    var module: CkanModule.Release
 
     var body: some View {
         if module.downloadSizeBytes + module.installSizeBytes > 0 {
@@ -151,8 +151,8 @@ private struct DownloadSizeIndicator: View {
     ErrorAlertView {
         ModInspector()
             .onAppear {
-                store.modules.append(contentsOf: CkanModule.samples)
-                state.selectedModule = CkanModule.samples.first!.id
+                store.modules.append(contentsOf: CkanModule.Release.samples)
+                state.selectedModule = CkanModule.Release.samples.first!.id
             }
     }
     .frame(width: 270, height: 500)

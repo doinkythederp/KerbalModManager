@@ -10,7 +10,7 @@ import SFSafeSymbols
 import SwiftUI
 
 struct ModRelationshipsView: View {
-    var module: CkanModule
+    var module: CkanModule.Release
 
     @State private var isExpanded = true
     @State private var isProvidesHelpShown = false
@@ -79,7 +79,7 @@ struct ModRelationshipsView: View {
 
 private struct ModRelationshipsSection<Header: View, Help: View>: View {
     private enum Data {
-        case normal([CkanModule.Relationship])
+        case normal([CkanModule.Release.Relationship])
         case dependencyCategories([String])
 
         var isEmpty: Bool {
@@ -96,7 +96,7 @@ private struct ModRelationshipsSection<Header: View, Help: View>: View {
     private var help: () -> Help
 
     init(
-        _ relationships: [CkanModule.Relationship],
+        _ relationships: [CkanModule.Release.Relationship],
         @ViewBuilder header: @escaping () -> Header,
         @ViewBuilder help: @escaping () -> Help
     ) {
@@ -162,7 +162,7 @@ private struct ModRelationshipsSection<Header: View, Help: View>: View {
 }
 
 private struct ModRelationshipView: View {
-    var relationship: CkanModule.Relationship
+    var relationship: CkanModule.Release.Relationship
 
     @Environment(Store.self) private var store
     @Environment(ModBrowserState.self) private var state

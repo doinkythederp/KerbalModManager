@@ -5,10 +5,10 @@
 //  Created by Lewis McClelland on 3/3/25.
 //
 
-import System
-import Foundation
 import AppKit
+import Foundation
 import IdentifiedCollections
+import System
 
 @Observable
 public final class GameInstance: Identifiable, Equatable {
@@ -22,9 +22,11 @@ public final class GameInstance: Identifiable, Equatable {
     public var game: Game
     public var version: GameVersion
     public var isDefault: Bool
+    public var compatabilityOptions: CompatabilityOptions
 
     public var hasPrepopulatedRegistry = false
-    public var compatibleModules = Set<CkanModule.ID>()
+    public var compatibleModules = Set<CkanModule.Release.ID>()
+
 
     public var fileURL: URL {
         URL(filePath: directory)!
@@ -51,23 +53,44 @@ public final class GameInstance: Identifiable, Equatable {
         directory: FilePath,
         game: Game = Game.kerbalSpaceProgram,
         version: GameVersion = GameVersion(),
-        isDefault: Bool = false
+        isDefault: Bool = false,
+        compatabilityOptions: CompatabilityOptions = .init()
     ) {
         self.name = name
         self.directory = directory
         self.game = game
         self.version = version
         self.isDefault = isDefault
+        self.compatabilityOptions = compatabilityOptions
     }
 
-    init(from ckan: Ckan_Instance) throws(CkanError) {
-        name = ckan.name
-        directory = FilePath(ckan.directory)
-        guard let game = Game(id: ckan.gameID) else {
-            throw CkanError.unknownGameID(id: ckan.gameID)
+    public struct CompatabilityOptions: Equatable, Sendable {
+        public var stabilityTolerance = CkanModule.Release.Status.stable
+        public var stabilityToleranceOverrides:
+            [CkanModule.ID: CkanModule.Release.Status] = [:]
+        public var versionCompatibility = VersionCompatibility()
+
+        public init(
+            stabilityTolerance: CkanModule.Release.Status = .stable,
+            stabilityToleranceOverrides: [CkanModule.ID: CkanModule.Release.Status] = [:],
+            versionCompatibility: GameInstance.VersionCompatibility = .init()
+        ) {
+            self.stabilityTolerance = stabilityTolerance
+            self.stabilityToleranceOverrides = stabilityToleranceOverrides
+            self.versionCompatibility = versionCompatibility
         }
-        self.game = game
-        version = GameVersion(from: ckan.gameVersion)
-        isDefault = ckan.isDefault
+    }
+
+    public struct VersionCompatibility: Equatable, Sendable {
+        public var additionalCompatibleVersions = Set<GameVersion>()
+        public var gameVersionWhenLastUpdated: GameVersion?
+
+        public init(
+            _ additionalCompatibleVersions: Set<GameVersion> = [],
+            gameVersionWhenLastUpdated: GameVersion? = nil
+        ) {
+            self.gameVersionWhenLastUpdated = gameVersionWhenLastUpdated
+            self.additionalCompatibleVersions = additionalCompatibleVersions
+        }
     }
 }

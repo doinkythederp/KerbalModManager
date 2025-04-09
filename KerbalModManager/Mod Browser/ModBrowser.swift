@@ -24,14 +24,14 @@ struct ModBrowser: View {
     var showInspector = true
 
     @SceneStorage("ModBrowserTableConfig")
-    private var columnCustomization: TableColumnCustomization<CkanModule>
+    private var columnCustomization: TableColumnCustomization<CkanModule.Release>
 
     @State private var state = ModBrowserState()
 
     @FocusState private var tableFocus: Bool
 
     @ViewBuilder
-    func table(modules: [CkanModule]) -> some View {
+    func table(modules: [CkanModule.Release]) -> some View {
         Table(
             modules.sorted(using: state.sortOrder),
             selection: $state.selectedModule,

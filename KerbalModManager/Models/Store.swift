@@ -13,7 +13,7 @@ import IdentifiedCollections
     var instances: IdentifiedArrayOf<GameInstance> = []
     var instanceBeingRenamed: GameInstance?
 
-    var modules: IdentifiedArrayOf<CkanModule> = []
+    var modules: IdentifiedArrayOf<CkanModule.Release> = []
 
     @ObservationIgnored lazy var client = CKANClient()
 

@@ -58,7 +58,7 @@ struct LicenseTagView: View {
 }
 
 struct StabilityTagView: View {
-    var releaseStatus: CkanModule.ReleaseStatus
+    var releaseStatus: CkanModule.Release.Status
 
     var body: some View {
         let isUnstable = releaseStatus != .stable

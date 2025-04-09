@@ -10,7 +10,7 @@
 import Foundation
 import CkanAPI
 
-extension CkanModule {
+extension CkanModule.Release {
     var versionDescription: String {
         if version.starts(with: "v") {
             version

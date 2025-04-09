@@ -9,7 +9,7 @@ import SwiftUI
 import CkanAPI
 
 struct ModResourcesView: View {
-    var module: CkanModule
+    var module: CkanModule.Release
 
     @State private var isExpanded = true
 

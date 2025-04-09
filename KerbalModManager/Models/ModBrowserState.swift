@@ -19,18 +19,18 @@ extension FocusedValues {
 }
 
 @MainActor @Observable final class ModBrowserState {
-    var selectedModule: CkanModule.ID?
-    var sortOrder = [KeyPathComparator(\CkanModule.name)]
+    var selectedModule: CkanModule.Release.ID?
+    var sortOrder = [KeyPathComparator(\CkanModule.Release.name)]
     var scrollProxy: ScrollViewProxy?
 
     var isSearchPresented = false
     var search = Search()
-    @ObservationIgnored private var searchResults: OrderedSet<CkanModule.ID>?
+    @ObservationIgnored private var searchResults: OrderedSet<CkanModule.Release.ID>?
     @ObservationIgnored private var searchResultsHash: Int?
     @ObservationIgnored var preferNonDestructiveSearches = false
 
     /// This module will be scrolled to after the next render.
-    var modulePendingReveal: CkanModule.ID?
+    var modulePendingReveal: CkanModule.Release.ID?
 
     struct Search: Hashable {
         var filters: Set<SimpleModFilter> = [.compatible]
@@ -86,9 +86,9 @@ extension FocusedValues {
     }
 
     func queryModules(
-        _ modules: IdentifiedArrayOf<CkanModule>,
+        _ modules: IdentifiedArrayOf<CkanModule.Release>,
         instance: GameInstance
-    ) -> IdentifiedArrayOf<CkanModule> {
+    ) -> IdentifiedArrayOf<CkanModule.Release> {
         if search.text.isEmpty && search.filters.isEmpty
             && search.tokens.isEmpty
         {
@@ -130,7 +130,7 @@ extension FocusedValues {
     }
 
     /// Show the given module to the user.
-    func reveal(module: CkanModule) {
+    func reveal(module: CkanModule.Release) {
         search.clearSearchBox()
         selectedModule = module.id
         modulePendingReveal = module.id
@@ -152,7 +152,7 @@ extension ModBrowserState: FocusedValueKey {
     typealias Value = ModBrowserState
 }
 
-extension CkanModule {
+extension CkanModule.Release {
     fileprivate func containsSearchQuery(_ query: String) -> Bool {
         if query.isEmpty {
             return true
@@ -208,9 +208,9 @@ enum SimpleModFilter: Hashable, CaseIterable,
     }
 
     func check(
-        _ module: CkanModule,
+        _ module: CkanModule.Release,
         instance: GameInstance,
-        modules: IdentifiedArrayOf<CkanModule>
+        modules: IdentifiedArrayOf<CkanModule.Release>
     ) -> Bool {
         switch self {
         case .compatible:
@@ -273,7 +273,7 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
     var searchTerm: String
 
     func check(
-        _ module: CkanModule,
+        _ module: CkanModule.Release,
         instance: GameInstance,
         modules: IdentifiedArrayOf<CkanModule>
     ) -> Bool {
@@ -304,7 +304,7 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
     }
 
     private static func flattenRelationships(
-        _ relationships: [CkanModule.Relationship],
+        _ relationships: [CkanModule.Release.Relationship],
         modules: IdentifiedArrayOf<CkanModule>
     ) -> [String] {
         relationships
@@ -331,8 +331,8 @@ extension [String] {
 
 protocol ModSearchFilter {
     func check(
-        _ module: CkanModule,
+        _ module: CkanModule.Release,
         instance: GameInstance,
-        modules: IdentifiedArrayOf<CkanModule>
+        modules: IdentifiedArrayOf<CkanModule.Release>
     ) -> Bool
 }

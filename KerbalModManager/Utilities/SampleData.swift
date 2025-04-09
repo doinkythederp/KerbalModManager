@@ -24,10 +24,10 @@ extension GameInstance {
     ]
 }
 
-extension CkanModule {
+extension CkanModule.Release {
     @MainActor
     static let samples = [
-        CkanModule(
+        CkanModule.Release(
             id: "Parallax",
             name: "Parallax",
             version: "1.0.1",
