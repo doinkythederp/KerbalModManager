@@ -1,6 +1,7 @@
 import AsyncAlgorithms
 import GRPCCore
 import GRPCNIOTransportHTTP2TransportServices
+import Collections
 
 public actor CKANClient {
     private var grpcClient: GRPCClient<HTTP2ClientTransport.TransportServices>

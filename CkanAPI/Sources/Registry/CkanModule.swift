@@ -9,8 +9,9 @@ import Collections
 import Foundation
 import IdentifiedCollections
 
-public class CkanModule: Identifiable {
-    public var id: String
+/// A module that exists in the CKAN registry.
+@Observable public class CkanModule: Identifiable {
+    public let id: String
     public var releases: IdentifiedArrayOf<Release>
 
     public init(id: String, releases: IdentifiedArrayOf<Release> = []) {
@@ -18,8 +19,8 @@ public class CkanModule: Identifiable {
         self.releases = releases
     }
 
-    @Observable
-    public class Release: Identifiable {
+    /// A specific version of a module.
+    @Observable public class Release: Identifiable {
         public var id: (moduleId: String, version: CkanModule.Version) {
             (moduleId, version)
         }

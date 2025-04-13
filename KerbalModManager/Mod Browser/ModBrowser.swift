@@ -221,7 +221,7 @@ struct ModBrowser: View {
             loadProgress = 100
 
             try await store.loadModules(
-                compatibleWith: instance, with: ckanActionDelegate)
+                for: instance, with: ckanActionDelegate)
             showLoading = false
         } catch {
             logger.error("Loading mod list failed: \(error.localizedDescription)")
