@@ -7,6 +7,7 @@
 
 import Foundation
 import IdentifiedCollections
+import Collections
 
 extension CkanModule {
     convenience init(from ckan: Ckan_Module) {

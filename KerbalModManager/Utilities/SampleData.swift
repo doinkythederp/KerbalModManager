@@ -30,7 +30,7 @@ extension CkanModule.Release {
         CkanModule.Release(
             id: "Parallax",
             name: "Parallax",
-            version: "1.0.1",
+            version: .init("1.0.1"),
             abstract: "A PBR terrain shader for planet surfaces",
             authors: ["Gameslinx"],
             licenses: ["CC-BY-NC-ND-4.0"],
