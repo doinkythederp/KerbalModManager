@@ -7,10 +7,14 @@
 
 import Foundation
 import CkanAPI
+import Collections
+import IdentifiedCollections
 
-@Observable final class GUIMod {
+@Observable final class GUIMod: Identifiable {
+    var id: CkanModule.ID { module.id }
+
     let module: CkanModule
-    let instance: GameInstance
+    let instance: GUIInstance
 
     var install: InstalledModule?
 
@@ -18,8 +22,18 @@ import CkanAPI
     ///
     /// If the mod is installed, it will use the installed release; compatible, the latest compatible release.
     /// Otherwise, it will use the latest release.
-    var currentRelease: CkanModule.Release?
+    var currentRelease: CkanModule.Release
     var isCompatible = false
+    var compatibleReleases: IdentifiedArrayOf<CkanModule.Release> = []
 
-    
+    var canBeUpgraded = false
+
+    init(
+        module: CkanModule,
+        instance: GUIInstance
+    ) {
+        self.module = module
+        self.instance = instance
+        currentRelease = module.releases.first!
+    }
 }

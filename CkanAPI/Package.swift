@@ -22,6 +22,7 @@ let package = Package(
         .package(url: "https://github.com/grpc/grpc-swift-protobuf.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.0"),
+        .package(url: "https://github.com/pointfreeco/swift-identified-collections.git", from: "1.1.1")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -34,6 +35,7 @@ let package = Package(
                 .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .product(name: "Collections", package: "swift-collections"),
+                .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
             ],
             plugins: [
                 .plugin(name: "GRPCProtobufGenerator", package: "grpc-swift-protobuf")

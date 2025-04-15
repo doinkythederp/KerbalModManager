@@ -173,7 +173,8 @@ private struct ModRelationshipView: View {
             GroupBox {
                 HStack {
                     let name =
-                        store.modules[id: direct.name]?.name ?? direct.name
+                        store.modules[id: direct.name]?.currentRelease.name
+                        ?? direct.name
 
                     let isRealModule = store.modules.ids.contains(direct.name)
 

@@ -9,7 +9,7 @@ import Foundation
 import System
 
 extension GameInstance {
-    convenience init(from ckan: Ckan_Instance) throws(CkanError) {
+    init(from ckan: Ckan_Instance) throws(CkanError) {
         guard let game = Game(id: ckan.gameID) else {
             throw CkanError.unknownGameID(id: ckan.gameID)
         }

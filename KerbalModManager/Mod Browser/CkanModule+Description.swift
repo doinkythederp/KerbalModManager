@@ -12,11 +12,7 @@ import CkanAPI
 
 extension CkanModule.Release {
     var versionDescription: String {
-        if version.starts(with: "v") {
-            version
-        } else {
-            "v\(version)"
-        }
+        String(version.versionComponent)
     }
     var authorsDescription: String {
         authors.formatted()

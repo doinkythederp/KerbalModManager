@@ -11,11 +11,11 @@ import System
 import SFSafeSymbols
 
 struct SelectedGameInstance: FocusedValueKey {
-    typealias Value = GameInstance
+    typealias Value = GUIInstance
 }
 
 extension FocusedValues {
-    var selectedGameInstance: GameInstance? {
+    var selectedGameInstance: GUIInstance? {
         get { self[SelectedGameInstance.self] }
         set { self[SelectedGameInstance.self] = newValue }
     }
@@ -23,18 +23,18 @@ extension FocusedValues {
 
 struct InstanceList: View {
     @Environment(Store.self) var store: Store
-    var navigate: (GameInstance) -> Void
+    var navigate: (GUIInstance) -> Void
     var cancel: () -> Void
 
     init(
-        onNavigate: @escaping (GameInstance) -> Void = { _ in },
+        onNavigate: @escaping (GUIInstance) -> Void = { _ in },
         onCancel: @escaping () -> Void = {}
     ) {
         self.navigate = onNavigate
         self.cancel = onCancel
     }
 
-    @State private var selection: GameInstance?
+    @State private var selection: GUIInstance?
     @State private var allowKeyboardNavigation = true
 
     @Environment(\.layoutDirection) private var layoutDirection
@@ -194,7 +194,9 @@ struct InstanceList: View {
         scrollViewProxy: ScrollViewProxy
     ) -> KeyPress.Result {
         if let matchedInstance = store.instances.first(where: { instance in
-            instance.name.lowercased().starts(with: characters)
+            instance.ckan.name
+                .lowercased()
+                .starts(with: characters)
         }) {
             selection = matchedInstance
             scrollViewProxy.scrollTo(matchedInstance.id)
@@ -213,21 +215,11 @@ struct InstanceList: View {
 }
 
 #Preview {
-    @Previewable @State var instances = [
-        GameInstance(
-            name: "Global Kerbal Space Program",
-            directory: "/Applications/Kerbal Space Program"),
-        GameInstance(
-            name: "Steam KSP",
-            directory: FilePath(
-                "/Users/\(NSUserName())/Library/Application Support/Steam/SteamApps/common/Kerbal Space Program"
-            )
-        ),
-    ]
-    @Previewable @State var selection: GameInstance?
+    @Previewable @State var instances = GUIInstance.samples
+    @Previewable @State var selection: GUIInstance?
 
     if let instance = selection {
-        Text(instance.name)
+        Text(instance.ckan.name)
         Button("Back") {
             selection = nil
         }

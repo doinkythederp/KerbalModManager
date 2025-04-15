@@ -9,7 +9,7 @@ import CkanAPI
 import SwiftUI
 
 struct InstanceTile: View {
-    var instance: GameInstance
+    var instance: GUIInstance
     var isSelected: Bool
     @Binding var allowKeyboardNavigation: Bool
 
@@ -182,9 +182,7 @@ extension InstanceTile {
 }
 
 #Preview {
-    @Previewable @State var instance = GameInstance(
-        name: "Kerbal Space Program",
-        directory: "/Applications/Kerbal Space Program")
+    @Previewable @State var instance = GUIInstance.samples.first!
     @Previewable @FocusState var focus: Bool
 
     HStack(spacing: 30) {

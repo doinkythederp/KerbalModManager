@@ -27,7 +27,7 @@ struct InstanceCommands: Commands {
                 }
 
                 let copyLabel: LocalizedStringKey = if let selectedInstance {
-                    "Copy \"\(selectedInstance.name)\" as Pathname"
+                    "Copy \"\(selectedInstance.ckan.name)\" as Pathname"
                 } else {
                     "Copy as Pathname"
                 }
@@ -37,7 +37,7 @@ struct InstanceCommands: Commands {
                 }
                 .keyboardShortcut("C", modifiers: [.command, .option])
             }
-            .disabled(selectedInstance == nil)
+//            .disabled(selectedInstance == nil)
         }
     }
 }

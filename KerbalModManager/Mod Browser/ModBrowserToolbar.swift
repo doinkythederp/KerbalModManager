@@ -9,7 +9,7 @@ import CkanAPI
 import SwiftUI
 
 struct ModBrowserToolbar: ToolbarContent {
-    var instance: GameInstance
+    var instance: GUIInstance
 
     @State private var isRenamingInstance = false
     @State private var editedInstanceName = ""
@@ -27,10 +27,10 @@ struct ModBrowserToolbar: ToolbarContent {
                 Form {
                     TextField("Instance Name:", text: $editedInstanceName)
                         .onAppear {
-                            editedInstanceName = instance.name
+                            editedInstanceName = instance.ckan.name
                         }
                         .onSubmit {
-                            instance.rename(editedInstanceName)
+                            instance.ckan.rename(editedInstanceName)
                         }
                     Button("Done") {
                         isRenamingInstance = false
@@ -44,7 +44,7 @@ struct ModBrowserToolbar: ToolbarContent {
             }
             .onChange(of: isRenamingInstance) {
                 if !isRenamingInstance {
-                    instance.rename(editedInstanceName)
+                    instance.ckan.rename(editedInstanceName)
 
                     if store.instanceBeingRenamed == instance {
                         store.instanceBeingRenamed = nil

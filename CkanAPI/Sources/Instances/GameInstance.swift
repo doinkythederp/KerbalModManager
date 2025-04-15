@@ -5,17 +5,11 @@
 //  Created by Lewis McClelland on 3/3/25.
 //
 
-import AppKit
 import Foundation
 import IdentifiedCollections
 import System
 
-@Observable
-public final class GameInstance: Identifiable, Equatable {
-    public static func == (lhs: GameInstance, rhs: GameInstance) -> Bool {
-        lhs.id == rhs.id
-    }
-
+public struct GameInstance: Identifiable, Equatable {
     public var id = UUID()
     public private(set) var name: String
     public var directory: FilePath
@@ -24,28 +18,13 @@ public final class GameInstance: Identifiable, Equatable {
     public var isDefault: Bool
     public var compatabilityOptions: CompatabilityOptions
 
-    public var hasPrepopulatedRegistry = false
-    public var compatibleModules = Set<CkanModule.Release.ID>()
-
-
     public var fileURL: URL {
         URL(filePath: directory)!
     }
 
-    public func rename(_ newName: String) {
+    public mutating func rename(_ newName: String) {
         if newName.isEmpty { return }
         name = newName
-    }
-
-    public func copyDirectory() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(directory.string, forType: .string)
-        pasteboard.setString(fileURL.absoluteString, forType: .fileURL)
-    }
-
-    public func openInFinder() {
-        NSWorkspace.shared.activateFileViewerSelecting([fileURL])
     }
 
     public init(

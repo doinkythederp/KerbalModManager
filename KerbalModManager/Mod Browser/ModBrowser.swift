@@ -12,7 +12,7 @@ import SwiftUI
 import WrappingHStack
 
 struct ModBrowser: View {
-    var instance: GameInstance
+    var instance: GUIInstance
 
     @Environment(Store.self) private var store: Store
     @Environment(\.ckanActionDelegate) private var ckanActionDelegate
@@ -24,21 +24,22 @@ struct ModBrowser: View {
     var showInspector = true
 
     @SceneStorage("ModBrowserTableConfig")
-    private var columnCustomization: TableColumnCustomization<CkanModule.Release>
+    private var columnCustomization: TableColumnCustomization<GUIMod>
 
     @State private var state = ModBrowserState()
 
     @FocusState private var tableFocus: Bool
 
     @ViewBuilder
-    func table(modules: [CkanModule.Release]) -> some View {
+    func table(modules: [GUIMod]) -> some View {
         Table(
             modules.sorted(using: state.sortOrder),
-            selection: $state.selectedModule,
+            selection: $state.selectedMod,
             sortOrder: $state.sortOrder,
             columnCustomization: $columnCustomization
         ) {
-            TableColumn("􀁸") { module in
+            let downloadIcon = Image(systemSymbol: .arrowDownCircle)
+            TableColumn("\(downloadIcon)") { module in
                 Toggle("Installed", isOn: .constant(false))
                     .toggleStyle(.checkbox)
                     .labelsHidden()
@@ -49,43 +50,43 @@ struct ModBrowser: View {
             .customizationID("installed")
             .disabledCustomizationBehavior(.all)
 
-            TableColumn("Name", value: \.name) { module in
-                Text(module.name)
+            TableColumn("Name", value: \.currentRelease.name) { module in
+                Text(module.currentRelease.name)
                     .id(module.id)
             }
             .width(ideal: 200)
             .customizationID("name")
             .disabledCustomizationBehavior(.visibility)
 
-            TableColumn("Author", value: \.authorsDescription) { module in
-                Text(module.authorsDescription)
+            TableColumn("Author", value: \.currentRelease.authorsDescription) { module in
+                Text(module.currentRelease.authorsDescription)
             }
             .width(min: 100, ideal: 100, max: 200)
             .customizationID("author")
 
-            TableColumn("Downloads", sortUsing: KeyPathComparator(\.downloadCount)) {
+            TableColumn("Downloads", sortUsing: KeyPathComparator(\.currentRelease.downloadCount)) {
                 module in
-                Text(module.downloadCount.formatted())
+                Text(module.currentRelease.downloadCount.formatted())
             }
             .width(70)
             .customizationID("downloadCount")
 
-            TableColumn("Max KSP", sortUsing: KeyPathComparator(\.kspVersionMax)) {
+            TableColumn("Max KSP", sortUsing: KeyPathComparator(\.currentRelease.kspVersionMax)) {
                 module in
-                Text(module.kspVersionMaxDescription)
+                Text(module.currentRelease.kspVersionMaxDescription)
             }
             .width(70)
             .customizationID("maxVersion")
 
-            TableColumn("Size", sortUsing: KeyPathComparator(\.downloadSizeBytes)) {
+            TableColumn("Size", sortUsing: KeyPathComparator(\.currentRelease.downloadSizeBytes)) {
                 module in
-                Text(module.downloadSizeBytesDescription)
+                Text(module.currentRelease.downloadSizeBytesDescription)
             }
             .width(70)
             .customizationID("downloadSize")
 
-            TableColumn("Description", value: \.abstract) { module in
-                Text(module.abstract)
+            TableColumn("Description", value: \.currentRelease.abstract) { module in
+                Text(module.currentRelease.abstract)
             }
             .width(ideal: 300)
             .customizationID("abstract")
@@ -103,7 +104,7 @@ struct ModBrowser: View {
                 table(modules: searchResults.elements)
             }
             .navigationTitle("Mod Browser")
-            .navigationSubtitle(instance.name)
+            .navigationSubtitle(instance.ckan.name)
             .focusedSceneValue(\.selectedGameInstance, instance)
             .toolbar {
                 ModBrowserToolbar(instance: instance)
@@ -215,7 +216,7 @@ struct ModBrowser: View {
 
             if !instance.hasPrepopulatedRegistry {
                 try await store.client.prepopulateRegistry(
-                    for: instance, with: self)
+                    for: instance.ckan, with: self)
             }
 
             loadProgress = 100
@@ -248,7 +249,7 @@ extension ModBrowser: CkanActionDelegate {
     @Previewable @State var store = Store()
 
     ErrorAlertView {
-        ModBrowser(instance: GameInstance.samples.first!)
+        ModBrowser(instance: GUIInstance.samples.first!)
     }
     .frame(width: 800, height: 450)
     .environment(store)
@@ -259,7 +260,7 @@ extension ModBrowser: CkanActionDelegate {
     @Previewable @State var store = Store()
 
     ErrorAlertView {
-        ModBrowser(instance: GameInstance.samples.first!, showInspector: false)
+        ModBrowser(instance: GUIInstance.samples.first!, showInspector: false)
     }
     .frame(width: 700, height: 450)
     .environment(store)
