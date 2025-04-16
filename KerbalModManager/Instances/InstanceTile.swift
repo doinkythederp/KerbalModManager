@@ -48,9 +48,9 @@ struct InstanceTile: View {
                         .textFieldStyle(.plain)
                         .labelsHidden()
                         .onSubmit { finishRenaming() }
-                        .onAppear { editedName = instance.name }
-                        .onChange(of: instance.name) {
-                            editedName = instance.name
+                        .onAppear { editedName = instance.ckan.name }
+                        .onChange(of: instance.ckan.name) {
+                            editedName = instance.ckan.name
                         }
                         .onKeyPress(.escape) {
                             if isRenaming {
@@ -63,7 +63,7 @@ struct InstanceTile: View {
                         .focused($renameFocused)
                         .defaultFocus($renameFocused, true)
                 } else {
-                    Text(isRenaming ? editedName : instance.name)
+                    Text(isRenaming ? editedName : instance.ckan.name)
                 }
             }
             .lineLimit(2)
@@ -112,7 +112,7 @@ struct InstanceTile: View {
                 Button("Copy Path", systemImage: "clipboard") {
                     instance.copyDirectory()
                 }
-                Text(instance.directory.string)
+                Text(instance.ckan.directory.string)
                     .textSelection(.enabled)
             }
         }
@@ -161,17 +161,17 @@ struct InstanceTile: View {
     }
 
     func rename() {
-        editedName = instance.name
+        editedName = instance.ckan.name
         isRenaming = true
     }
 
     func cancelRenaming() {
-        editedName = instance.name
+        editedName = instance.ckan.name
         isRenaming = false
     }
 
     func finishRenaming() {
-        instance.rename(editedName)
+        instance.ckan.rename(editedName)
         isRenaming = false
     }
 }

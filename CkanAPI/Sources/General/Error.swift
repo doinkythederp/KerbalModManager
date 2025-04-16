@@ -34,7 +34,7 @@ extension CkanError: LocalizedError {
         case .responseNotReceived:
             resource = "CKAN ended a request before a response was received."
         case .rpcFailure(let source):
-            return source.description
+            resource = "RPC failed: \(source.description)"
         case .unknownGameID(let id):
             resource = "The game \"\(id)\" is not supported."
         case .server(let source):

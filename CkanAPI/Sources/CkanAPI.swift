@@ -33,7 +33,7 @@ public actor CKANClient {
         with delegate: CkanActionDelegate,
         matcher: @Sendable @escaping (Ckan_ActionReply.OneOf_Status)
             async throws -> T?
-    ) async throws(CkanError) -> T? {
+    ) async throws(CkanError) -> [T] {
         let pendingMessages = AsyncChannel<Ckan_ActionMessage>()
         let req = StreamingClientRequest { writer in
             try await writer.write(initialMessage)
@@ -42,11 +42,12 @@ public actor CKANClient {
 
         print("Making request")
         do {
-            return try await ckanClient.processAction(request: req) {
-                response in
+            return try await ckanClient.processAction(request: req) { response in
+                
+                var results: [T] = []
+                
                 for try await replyMsg in response.messages {
                     print("Got reply")
-                    //                    dump(replyMsg)
 
                     var status = replyMsg.status
                     try await self.handleReply(
@@ -54,13 +55,14 @@ public actor CKANClient {
                         delegate: delegate)
 
                     // Only run `matcher` if `handleReply` didn't consume the status.
-                    if let status, let inner = try await matcher(status) {
-                        pendingMessages.finish()
-                        return inner
+                    if let status,
+                       let result = try await matcher(status) {
+                        results.append(result)
                     }
                 }
-
-                return nil
+                
+                pendingMessages.finish()
+                return results
             }
         } catch let error as RPCError {
             throw CkanError.rpcFailure(error)
@@ -144,7 +146,7 @@ public actor CKANClient {
             }
         }
 
-        guard let reply else { throw CkanError.responseNotReceived }
+        guard let reply = reply.first else { throw CkanError.responseNotReceived }
         guard reply.result == .rorSuccess else {
             throw CkanError(registry: reply)
         }
@@ -159,7 +161,7 @@ public actor CKANClient {
             $0.instancesListRequest = Ckan_InstancesListRequest()
         }
 
-        let list = try await performAction(message, with: delegate) { status in
+        let reply = try await performAction(message, with: delegate) { status in
             return if case .instancesListReply(let list) = status {
                 list
             } else {
@@ -167,7 +169,7 @@ public actor CKANClient {
             }
         }
 
-        guard let list else { throw CkanError.responseNotReceived }
+        guard let list = reply.first else { throw CkanError.responseNotReceived }
 
         return list.instances
     }
@@ -218,8 +220,7 @@ public actor CKANClient {
     func getCkanModules(
         availableTo instanceName: String,
         with delegate: CkanActionDelegate
-    )
-        async throws(CkanError) -> [Ckan_Module]
+    ) -> AsyncThrowingStream<[Ckan_Module], any Error>
     {
         print("Getting available modules")
         let message = Ckan_ActionMessage.with {
@@ -228,14 +229,25 @@ public actor CKANClient {
                     $0.instanceName = instanceName
                 }
         }
-
-        let reply = try await performRegistryAction(message, with: delegate)
-
-        guard case .availableModules(let list) = reply.results else {
-            throw CkanError.responseNotReceived
+        
+        return AsyncThrowingStream<[Ckan_Module], any Error> { stream in
+            Task {
+                do {
+                    try await performAction<Never>(message, with: delegate) { status in
+                        switch status {
+                        case .registryOperationReply(let reply):
+                            stream.yield(reply.availableModules.modules)
+                            return nil
+                        default: return nil
+                        }
+                    }
+                    
+                    stream.finish()
+                } catch {
+                    stream.finish(throwing: error)
+                }
+            }
         }
-
-        return list.modules
     }
 
     @MainActor
