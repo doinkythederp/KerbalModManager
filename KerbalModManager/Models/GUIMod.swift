@@ -30,10 +30,16 @@ import IdentifiedCollections
 
     init(
         module: CkanModule,
-        instance: GUIInstance
+        instance: GUIInstance,
+        install: InstalledModule? = nil
     ) {
         self.module = module
         self.instance = instance
-        currentRelease = module.releases.first!
+        self.install = install
+        if let installedVersion = install?.version {
+            currentRelease = module.releases.first { $0.version.value == installedVersion }!
+        } else {
+            currentRelease = module.releases.first!
+        }
     }
 }

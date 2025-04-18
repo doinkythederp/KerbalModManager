@@ -21,10 +21,6 @@ import IdentifiedCollections
 
     /// A specific version of a module.
     @Observable public class Release: Identifiable {
-        public var id: (moduleId: String, version: CkanModule.Version) {
-            (moduleId, version)
-        }
-
         public var moduleId: String
         public var name: String
         public var version: CkanModule.Version

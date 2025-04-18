@@ -11,95 +11,173 @@ import WrappingHStack
 
 struct ModInspector: View {
     @State private var showRelationships = true
+    @State private var showVersions = true
+    @State private var versionOverride: CkanModule.Release?
 
     @Environment(Store.self) private var store
     @Environment(ModBrowserState.self) private var state
 
     var body: some View {
         if let moduleId = state.selectedMod,
-           let module = store.modules[id: moduleId]
+            let module = store.modules[id: moduleId]
         {
-            let current = module.currentRelease
-            ScrollView {
-                VStack(alignment: .leading, spacing: 15) {
+            let current = versionOverride ?? module.currentRelease
+            VStack(spacing: 0) {
+                if let versionOverride {
+                    Button("Show default version", systemSymbol: .chevronBackward) {
+                        self.versionOverride = nil
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(5)
+                    .background(.windowBackground)
+                    
+                    Divider()
+                }
+                
+                VStack {}.onAppear {
+                    versionOverride = module.currentRelease
+                }
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 15) {
 
-                    VStack(alignment: .leading) {
-                        HStack(alignment: .bottom) {
-                            Text(current.name)
-                                .font(.title2.bold())
+                        VStack(alignment: .leading) {
+                            HStack(alignment: .bottom) {
+                                Text(current.name)
+                                    .font(.title2.bold())
 
-                            Text(current.versionDescription)
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
+                                Text(current.versionDescription)
+                                    .font(.title3)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            HStack(alignment: .top, spacing: 5) {
+                                Text("By:")
+                                Text(current.authorsDescription)
+                                    .textSelection(.enabled)
+                            }
+                            .foregroundStyle(.secondary)
+
+                            let downloadStyle =
+                                if current.downloadCount > 100_000 {
+                                    Color.green
+                                } else if current.downloadCount > 10_000 {
+                                    Color.orange
+                                } else {
+                                    Color.secondary
+                                }
+
+                            Label(
+                                "\(current.downloadCount) downloads",
+                                systemSymbol: .arrowDownCircleFill
+                            )
+                            .symbolRenderingMode(.hierarchical)
+                            .padding(.top, 1)
+                            .foregroundStyle(downloadStyle)
+
+                            WrappingHStack(
+                                alignment: .leading,
+                                horizontalSpacing: 3,
+                                verticalSpacing: 3
+                            ) {
+                                ForEach(current.licenses, id: \.self) { license in
+                                    LicenseTagView(license: license)
+                                }
+                                if current.releaseStatus != .stable {
+                                    StabilityTagView(
+                                        releaseStatus: current.releaseStatus)
+                                }
+                                ForEach(current.tags, id: \.self) { tag in
+                                    CustomTagView(name: tag)
+                                }
+                            }
                         }
 
-                        HStack(alignment: .top, spacing: 5) {
-                            Text("By:")
-                            Text(current.authorsDescription)
+                        Text(current.abstract)
+                            .textSelection(.enabled)
+
+                        if let description = current.description {
+                            Text(description)
                                 .textSelection(.enabled)
                         }
-                        .foregroundStyle(.secondary)
 
-                        let downloadStyle = if current.downloadCount > 100_000 {
-                            Color.green
-                        } else if current.downloadCount > 10_000 {
-                            Color.orange
-                        } else {
-                            Color.secondary
+                        ModResourcesView(module: current)
+                        ModRelationshipsView(module: current)
+
+                        DisclosureGroup("Versions", isExpanded: $showVersions) {
+                            List(module.module.releases) { release in
+                                let isViewing = current.id == release.id
+                                let isInstalled =
+                                    module.install?.version == release.version.value
+
+                                GroupBox {
+                                    VStack(alignment: .leading) {
+                                        HStack {
+                                            Text(release.versionDescription)
+
+                                            Spacer()
+
+                                            Group {
+                                                Button("View", systemSymbol: .eye) {
+                                                    versionOverride = release
+                                                }
+                                                .labelStyle(.iconOnly)
+                                                //  .disabled(current.id == release.id)
+
+                                                Button(
+                                                    isInstalled
+                                                        ? "Uninstall" : "Install"
+                                                ) {
+
+                                                }
+                                            }
+                                            .controlSize(.small)
+                                        }
+
+                                        if isViewing || isInstalled {
+                                            HStack {
+                                                if isViewing {
+                                                    Label(
+                                                        "Viewing",
+                                                        systemSymbol: .eye)
+                                                }
+
+                                                if isInstalled {
+                                                    Label(
+                                                        "Installed",
+                                                        systemSymbol:
+                                                            .checkmarkCircle
+                                                    )
+                                                    .foregroundStyle(.green)
+                                                }
+                                            }
+                                            .foregroundStyle(.secondary)
+                                            .font(.callout)
+                                        }
+                                    }
+                                }
+
+                            }
+                            .frame(height: 300)
                         }
 
-                        Label(
-                            "\(current.downloadCount) downloads",
-                            systemSymbol: .arrowDownCircleFill
-                        )
-                        .symbolRenderingMode(.hierarchical)
-                        .padding(.top, 1)
-                        .foregroundStyle(downloadStyle)
-
-                        WrappingHStack(
-                            alignment: .leading,
-                            horizontalSpacing: 3,
-                            verticalSpacing: 3
-                        ) {
-                            ForEach(current.licenses, id: \.self) { license in
-                                LicenseTagView(license: license)
-                            }
-                            if current.releaseStatus != .stable {
-                                StabilityTagView(
-                                    releaseStatus: current.releaseStatus)
-                            }
-                            ForEach(current.tags, id: \.self) { tag in
-                                CustomTagView(name: tag)
-                            }
-                        }
+                        Spacer()
                     }
-
-                    Text(current.abstract)
-                        .textSelection(.enabled)
-
-                    if let description = current.description {
-                        Text(description)
-                            .textSelection(.enabled)
+                    .padding()
+                }
+                .safeAreaInset(edge: .bottom) {
+                    HStack {
+                        DownloadSizeIndicator(module: current)
+                        Spacer()
+                        Button("Install") {}
                     }
-
-                    ModResourcesView(module: current)
-                    ModRelationshipsView(module: current)
-
-                    Spacer()
+                    .padding()
+                    .background()
                 }
-                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .safeAreaInset(edge: .bottom) {
-                HStack {
-                    DownloadSizeIndicator(module: current)
-                    Spacer()
-                    Button("Install") {}
-                }
-                .padding()
-                .background()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .id(moduleId)
+            
+            
         } else {
             ContentUnavailableView(
                 "Select a Mod", systemSymbol: .magnifyingglassCircle)
@@ -156,7 +234,7 @@ private struct DownloadSizeIndicator: View {
                 state.selectedMod = store.modules.first!.id
             }
     }
-    .frame(width: 270, height: 500)
+    .frame(width: 270, height: 650)
     .environment(store)
     .environment(state)
 

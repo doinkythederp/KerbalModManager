@@ -75,6 +75,10 @@ extension CkanModule {
 extension GUIMod {
     @MainActor
     static let samples = CkanModule.samples.map {
-        GUIMod(module: $0, instance: GUIInstance.samples.first!)
+        GUIMod(
+            module: $0,
+            instance: GUIInstance.samples.first!,
+            install: .managed(.init(date: .now, version: $0.releases.first!.version.value))
+        )
     }
 }
