@@ -63,7 +63,7 @@ import SwiftUI
                         uniqueElements: modules.compactMap {
                             $0.currentRelease
                         },
-                        id: \.name
+                        id: \.moduleId
                     ),
                     instance: instance
                 ).ids

@@ -39,12 +39,15 @@ import IdentifiedCollections
         for instance: GUIInstance, with delegate: CkanActionDelegate
     ) async throws(CkanError) {
         logger.info("Fetching modules…")
-        let modules = try await client.getModules(
-            availableTo: instance.ckan, with: delegate)
-        self.modules.append(
-            contentsOf: modules.map { GUIMod(module: $0, instance: instance) })
-
-        instance.compatibleModules.formUnion(modules.map(\.id))
+        try await client.getModules(
+            availableTo: instance.ckan,
+            with: delegate
+        ) { chunk in
+            self.modules.append(
+                contentsOf: chunk.map {
+                    GUIMod(module: $0, instance: instance)
+                })
+        }
 
     }
 

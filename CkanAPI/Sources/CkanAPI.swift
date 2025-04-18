@@ -219,9 +219,9 @@ public actor CKANClient {
 
     func getCkanModules(
         availableTo instanceName: String,
-        with delegate: CkanActionDelegate
-    ) -> AsyncThrowingStream<[Ckan_Module], any Error>
-    {
+        with delegate: CkanActionDelegate,
+        handleChunk: @isolated(any) @Sendable @escaping ([Ckan_Module]) -> Void
+    ) async throws(CkanError) {
         print("Getting available modules")
         let message = Ckan_ActionMessage.with {
             $0.registryAvailableModulesRequest =
@@ -230,22 +230,13 @@ public actor CKANClient {
                 }
         }
         
-        return AsyncThrowingStream<[Ckan_Module], any Error> { stream in
-            Task {
-                do {
-                    try await performAction<Never>(message, with: delegate) { status in
-                        switch status {
-                        case .registryOperationReply(let reply):
-                            stream.yield(reply.availableModules.modules)
-                            return nil
-                        default: return nil
-                        }
-                    }
-                    
-                    stream.finish()
-                } catch {
-                    stream.finish(throwing: error)
-                }
+        _ = try await performAction(message, with: delegate) { status in
+            switch status {
+            case .registryOperationReply(let reply):
+                await handleChunk(reply.availableModules.modules)
+                
+                return Never?.none
+            default: return nil
             }
         }
     }
@@ -253,11 +244,12 @@ public actor CKANClient {
     @MainActor
     public func getModules(
         availableTo instance: GameInstance,
-        with delegate: CkanActionDelegate
-    ) async throws(CkanError) -> [CkanModule] {
-        let modules = try await getCkanModules(
-            availableTo: instance.name, with: delegate)
-        return modules.map { CkanModule(from: $0) }
+        with delegate: CkanActionDelegate,
+        handleChunk: @escaping ([CkanModule]) -> Void
+    ) async throws(CkanError) {
+        try await getCkanModules(availableTo: instance.name, with: delegate) { @MainActor chunk in
+            handleChunk(chunk.map { CkanModule(from: $0) })
+        }
     }
 
     deinit {
