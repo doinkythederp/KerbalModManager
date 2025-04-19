@@ -220,7 +220,7 @@ public actor CKANClient {
     func getCkanModules(
         availableTo instanceName: String,
         with delegate: CkanActionDelegate,
-        handleChunk: @isolated(any) @Sendable @escaping ([Ckan_Module]) -> Void
+        handleChunk: @isolated(any) @Sendable @escaping ([Ckan_Module], UInt32) -> Void
     ) async throws(CkanError) {
         print("Getting available modules")
         let message = Ckan_ActionMessage.with {
@@ -233,8 +233,8 @@ public actor CKANClient {
         _ = try await performAction(message, with: delegate) { status in
             switch status {
             case .registryOperationReply(let reply):
-                await handleChunk(reply.availableModules.modules)
-                
+                await handleChunk(reply.availableModules.modules, reply.availableModules.remaining)
+
                 return Never?.none
             default: return nil
             }
@@ -245,10 +245,14 @@ public actor CKANClient {
     public func getModules(
         availableTo instance: GameInstance,
         with delegate: CkanActionDelegate,
-        handleChunk: @escaping ([CkanModule]) -> Void
+        handleChunk: @escaping ([CkanModule], _ percentProgress: Double) -> Void
     ) async throws(CkanError) {
-        try await getCkanModules(availableTo: instance.name, with: delegate) { @MainActor chunk in
-            handleChunk(chunk.map { CkanModule(from: $0) })
+        var totalReceived = 0
+
+        try await getCkanModules(availableTo: instance.name, with: delegate) { @MainActor chunk, remaining in
+            totalReceived += chunk.count
+            let percentProgress = Double(totalReceived) / Double(totalReceived + Int(remaining))
+            handleChunk(chunk.map { CkanModule(from: $0) }, percentProgress)
         }
     }
 

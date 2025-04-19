@@ -8,6 +8,7 @@
 import CkanAPI
 import Foundation
 import System
+import SwiftUI
 
 extension GameInstance {
     @MainActor
@@ -113,4 +114,34 @@ extension GUIMod {
             install: .managed(.init(date: .now, version: $0.releases.first!.version.value))
         )
     }
+}
+
+struct SampleData: PreviewModifier {
+    struct Context {
+        var store: Store
+        var state: ModBrowserState
+    }
+
+    static func makeSharedContext() async throws -> Context {
+        let store = Store()
+        let state = ModBrowserState()
+
+        store.modules.append(contentsOf: GUIMod.samples)
+        state.selectedMod = store.modules.first!.id
+
+        return Context(store: store, state: state)
+    }
+
+    func body(content: Content, context: Context) -> some View {
+        ErrorAlertView {
+            content
+        }
+        .environment(context.store)
+        .environment(context.state)
+    }
+}
+
+extension PreviewModifier where Self == SampleData {
+    static var sampleData: Self { SampleData() }
+
 }

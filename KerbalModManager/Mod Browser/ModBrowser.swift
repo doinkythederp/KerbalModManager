@@ -219,10 +219,12 @@ struct ModBrowser: View {
                     for: instance.ckan, with: self)
             }
 
-            loadProgress = 100
+            loadProgress = 50
 
             try await store.loadModules(
-                for: instance, with: ckanActionDelegate)
+                for: instance, with: ckanActionDelegate) { progress in
+                    loadProgress = 50 + progress * 50.0
+                }
             showLoading = false
         } catch {
             logger.error("Loading mod list failed: \(error.localizedDescription)")
@@ -240,7 +242,7 @@ extension ModBrowser: CkanActionDelegate {
         )
         await MainActor.run {
             showLoading = true
-            loadProgress = Double(progress.percentCompletion)
+            loadProgress = Double(progress.percentCompletion) / 2.0
         }
     }
 }

@@ -12,7 +12,7 @@ import WrappingHStack
 struct ModInspector: View {
     @State private var showRelationships = true
     @State private var showVersions = true
-    @State private var versionOverride: CkanModule.Release?
+    @State private var releaseOverride: CkanModule.Release?
 
     @Environment(Store.self) private var store
     @Environment(ModBrowserState.self) private var state
@@ -21,11 +21,12 @@ struct ModInspector: View {
         if let moduleId = state.selectedMod,
             let module = store.modules[id: moduleId]
         {
-            let current = versionOverride ?? module.currentRelease
+            let current = releaseOverride ?? module.currentRelease
+
             VStack(spacing: 0) {
-                if let versionOverride {
+                if releaseOverride != nil {
                     Button("Show default version", systemSymbol: .chevronBackward) {
-                        self.versionOverride = nil
+                        self.releaseOverride = nil
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(5)
@@ -99,63 +100,8 @@ struct ModInspector: View {
 
                         ModResourcesView(module: current)
                         ModRelationshipsView(module: current)
+                        ModVersionsView(mod: module, releaseOverride: $releaseOverride)
 
-                        DisclosureGroup("Versions", isExpanded: $showVersions) {
-                            List(module.module.releases) { release in
-                                let isViewing = current.id == release.id
-                                let isInstalled =
-                                    module.install?.version == release.version.value
-
-                                GroupBox {
-                                    VStack(alignment: .leading) {
-                                        HStack {
-                                            Text(release.versionDescription)
-
-                                            Spacer()
-
-                                            Group {
-                                                Button("View", systemSymbol: .eye) {
-                                                    versionOverride = release
-                                                }
-                                                .labelStyle(.iconOnly)
-                                                .disabled(current.id == release.id)
-
-                                                Button(
-                                                    isInstalled
-                                                        ? "Uninstall" : "Install"
-                                                ) {
-
-                                                }
-                                            }
-                                            .controlSize(.small)
-                                        }
-
-                                        if isViewing || isInstalled {
-                                            HStack {
-                                                if isViewing {
-                                                    Label(
-                                                        "Viewing",
-                                                        systemSymbol: .eye)
-                                                }
-
-                                                if isInstalled {
-                                                    Label(
-                                                        "Installed",
-                                                        systemSymbol:
-                                                            .checkmarkCircle
-                                                    )
-                                                    .foregroundStyle(.green)
-                                                }
-                                            }
-                                            .foregroundStyle(.secondary)
-                                            .font(.callout)
-                                        }
-                                    }
-                                }
-
-                            }
-                            .frame(height: 300)
-                        }
 
                         Spacer()
                     }
@@ -220,19 +166,6 @@ private struct DownloadSizeIndicator: View {
     }
 }
 
-#Preview("Mod Inspector") {
-    @Previewable @State var store = Store()
-    @Previewable @State var state = ModBrowserState()
-
-    ErrorAlertView {
-        ModInspector()
-            .onAppear {
-                store.modules.append(contentsOf: GUIMod.samples)
-                state.selectedMod = store.modules.first!.id
-            }
-    }
-    .frame(width: 270, height: 650)
-    .environment(store)
-    .environment(state)
-
+#Preview("Mod Inspector", traits: .modifier(.sampleData)) {
+    ModInspector().frame(width: 270, height: 650)
 }
