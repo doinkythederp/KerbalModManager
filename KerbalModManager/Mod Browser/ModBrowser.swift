@@ -125,7 +125,7 @@ struct ModBrowser: View {
                 .presentationSizing(.form)
             }
             .inspector(isPresented: $showInspector) {
-                ModInspector()
+                ModInspector().id(state.selectedMod)
             }
             .searchable(
                 text: $state.search.text,

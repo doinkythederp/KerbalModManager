@@ -66,6 +66,38 @@ extension CkanModule {
                     ],
                     downloadSizeBytes: 445977,
                     downloadCount: 1_568_030
+                ),
+                Release(
+                    id: "Parallax",
+                    name: "Parallax",
+                    version: .init("1.0.0"),
+                    abstract: "A PBR terrain shader for planet surfaces (The old version)",
+                    authors: ["Gameslinx"],
+                    licenses: ["CC-BY-NC-ND-4.0"],
+                    resources: Release.Resources(
+                        homepage:
+                            "https://forum.kerbalspaceprogram.com/index.php?/topic/197024-110x-parallax-a-pbr-terrain-shader-100/",
+                        spacedock: "https://spacedock.info/mod/2539/Parallax",
+                        repository: "https://github.com/Gameslinx/Tessellation"
+                    ),
+                    tags: ["plugin", "library", "graphics"],
+                    releaseDate: Date.now - 60,
+                    depends: [
+                        Release.Relationship(direct: "Kopernicus"),
+                        Release.Relationship(direct: "Parallax-Textures"),
+                        Release.Relationship(anyOf: ["RealSolarSystem", "JNSQ"]),
+                    ],
+                    recommends: [
+                        Release.Relationship(direct: "Scatterer")
+                    ],
+                    downloadUrls: [
+                        URL(
+                            string:
+                                "https://spacedock.info/mod/2539/Parallax/download/1.0.0"
+                        )!
+                    ],
+                    downloadSizeBytes: 445977,
+                    downloadCount: 1_568_030
                 )
             ])
 

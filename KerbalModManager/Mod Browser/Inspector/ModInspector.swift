@@ -34,10 +34,6 @@ struct ModInspector: View {
                     Divider()
                 }
                 
-                VStack {}.onAppear {
-                    versionOverride = module.currentRelease
-                }
-                
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
 
@@ -122,7 +118,7 @@ struct ModInspector: View {
                                                     versionOverride = release
                                                 }
                                                 .labelStyle(.iconOnly)
-                                                //  .disabled(current.id == release.id)
+                                                .disabled(current.id == release.id)
 
                                                 Button(
                                                     isInstalled
@@ -175,6 +171,7 @@ struct ModInspector: View {
                     .background()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .id(current.id)
             }
             
             
