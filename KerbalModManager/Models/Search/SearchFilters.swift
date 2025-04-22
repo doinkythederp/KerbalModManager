@@ -59,7 +59,7 @@ enum SimpleModFilter: Hashable, CaseIterable,
     ) -> Bool {
         switch self {
         case .compatible:
-            instance.compatibleModules.contains(module.id)
+            instance.compatibleModules.ids.contains(module.moduleId)
         case .installed:
             true  // TODO: once we track installs
         case .upgradable:

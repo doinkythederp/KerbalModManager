@@ -19,7 +19,7 @@ struct ModInspector: View {
 
     var body: some View {
         if let moduleId = state.selectedMod,
-            let module = store.modules[id: moduleId]
+           let module = state.instance.modules[id: moduleId]
         {
             let current = releaseOverride ?? module.currentRelease
 

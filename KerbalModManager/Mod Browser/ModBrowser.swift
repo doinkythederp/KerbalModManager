@@ -13,6 +13,12 @@ import WrappingHStack
 
 struct ModBrowser: View {
     var instance: GUIInstance
+    
+    init(instance: GUIInstance, showInspector: Bool = true) {
+        self.instance = instance
+        state = ModBrowserState(instance: instance)
+        self.showInspector = showInspector
+    }
 
     @Environment(Store.self) private var store: Store
     @Environment(\.ckanActionDelegate) private var ckanActionDelegate
@@ -26,7 +32,7 @@ struct ModBrowser: View {
     @SceneStorage("ModBrowserTableConfig")
     private var columnCustomization: TableColumnCustomization<GUIMod>
 
-    @State private var state = ModBrowserState()
+    @State private var state: ModBrowserState
 
     @FocusState private var tableFocus: Bool
 
@@ -99,7 +105,7 @@ struct ModBrowser: View {
     var body: some View {
         ScrollViewReader { proxy in
             VStack {
-                let searchResults = state.queryModules(store.modules, instance: instance)
+                let searchResults = state.queryModules(state.instance.modules, instance: instance)
 
                 table(modules: searchResults.elements)
             }

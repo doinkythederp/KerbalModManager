@@ -9,24 +9,39 @@ import Foundation
 import Observation
 import CkanAPI
 import AppKit
+import Collections
+import IdentifiedCollections
 
 @Observable
-public final class GUIInstance: Identifiable {
-    public var id: GameInstance.ID { ckan.id }
+final class GUIInstance: Identifiable {
+    var id: GameInstance.ID { ckan.id }
 
-    public var ckan: GameInstance
+    var ckan: GameInstance
 
-    public var hasPrepopulatedRegistry = false
-    public var compatibleModules = Set<CkanModule.Release.ID>()
+    var hasPrepopulatedRegistry = false
+    
+    var modules = IdentifiedArray<String, GUIMod>(id: \.module.id)
+    
+    private(set) var compatibleModules = IdentifiedArray<String, GUIMod>(id: \.module.id)
+    
+    func index(module: GUIMod) {
+        assert(modules.contains(module))
+        
+        if module.isCompatible {
+            compatibleModules.append(module)
+        } else {
+            compatibleModules.remove(module)
+        }
+    }
 
-    public func copyDirectory() {
+    func copyDirectory() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(ckan.directory.string, forType: .string)
         pasteboard.setString(ckan.fileURL.absoluteString, forType: .fileURL)
     }
 
-    public func openInFinder() {
+    func openInFinder() {
         NSWorkspace.shared.activateFileViewerSelecting([ckan.fileURL])
     }
 
@@ -36,7 +51,7 @@ public final class GUIInstance: Identifiable {
 }
 
 extension GUIInstance: Equatable {
-    public static func == (lhs: GUIInstance, rhs: GUIInstance) -> Bool {
+    static func == (lhs: GUIInstance, rhs: GUIInstance) -> Bool {
         lhs.ckan == rhs.ckan
     }
 }

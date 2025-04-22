@@ -173,10 +173,12 @@ private struct ModRelationshipView: View {
             GroupBox {
                 HStack {
                     let name =
-                        store.modules[id: direct.name]?.currentRelease.name
-                        ?? direct.name
+                        state.instance
+                        .modules[id: direct.name]?
+                        .currentRelease.name ?? direct.name
 
-                    let isRealModule = store.modules.ids.contains(direct.name)
+                    let isRealModule = state.instance.modules.ids.contains(
+                        direct.name)
 
                     Label(
                         name,
@@ -222,7 +224,7 @@ private struct ModRelationshipView: View {
     }
 
     func show(_ targetId: String) {
-        if let module = store.modules[id: targetId] {
+        if let module = state.instance.modules[id: targetId] {
             state.reveal(module: module)
             return
         }

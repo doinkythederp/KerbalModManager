@@ -124,10 +124,13 @@ struct SampleData: PreviewModifier {
 
     static func makeSharedContext() async throws -> Context {
         let store = Store()
-        let state = ModBrowserState()
+        store.instances.append(contentsOf: GUIInstance.samples)
+        store.instances.first!.modules.append(contentsOf: GUIMod.samples)
+        
+        
+        let state = ModBrowserState(instance: store.instances.first!)
 
-        store.modules.append(contentsOf: GUIMod.samples)
-        state.selectedMod = store.modules.first!.id
+        state.selectedMod = GUIMod.samples.first!.id
 
         return Context(store: store, state: state)
     }

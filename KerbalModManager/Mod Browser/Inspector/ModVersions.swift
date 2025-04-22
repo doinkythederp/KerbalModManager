@@ -82,7 +82,7 @@ struct ModVersionsView: View {
     @Previewable @State var releaseOverride: CkanModule.Release?
 
     ModVersionsView(
-        mod: store.modules.first!, releaseOverride: $releaseOverride
+        mod: store.instances.first!.modules.first!, releaseOverride: $releaseOverride
     )
     .padding(.horizontal)
     .frame(width: 270, height: 350)

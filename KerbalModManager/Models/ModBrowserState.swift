@@ -13,6 +13,8 @@ import SwiftUI
 
 /// Tracks the state of a mod browser for a certain instance.
 @MainActor @Observable final class ModBrowserState {
+    let instance: GUIInstance
+    
     var selectedMod: GUIMod.ID?
     var sortOrder = [KeyPathComparator(\GUIMod.currentRelease.name)]
     var scrollProxy: ScrollViewProxy?
@@ -109,7 +111,9 @@ import SwiftUI
         search.tokens.append(contentsOf: tokens)
     }
 
-    init() {}
+    init(instance: GUIInstance) {
+        self.instance = instance
+    }
 }
 
 extension FocusedValues {

@@ -165,9 +165,7 @@ extension ModuleState {
         }
         canBeUpgraded = ckan.canBeUpgraded
         isCompatible = ckan.isCompatible
-        if ckan.hasCurrentRelease {
-            currentVersion = ckan.currentRelease
-        }
+        currentVersion = ckan.currentRelease
     }
 }
 

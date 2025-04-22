@@ -301,5 +301,5 @@ public struct ModuleState: Sendable, Equatable, Identifiable {
     public var isCompatible: Bool
     
     /// The version of the module most relevant to the instance
-    public var currentVersion: String?
+    public var currentVersion: String
 }

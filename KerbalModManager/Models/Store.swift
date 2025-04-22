@@ -14,8 +14,6 @@ import IdentifiedCollections
     var instances: IdentifiedArrayOf<GUIInstance> = []
     var instanceBeingRenamed: GUIInstance?
 
-    var modules: IdentifiedArrayOf<GUIMod> = []
-
     @ObservationIgnored lazy var client = CKANClient()
 
     var showCkanError = false
@@ -45,13 +43,25 @@ import IdentifiedCollections
             availableTo: instance.ckan,
             with: delegate
         ) { chunk, percentProgress in
-            self.modules.append(
+            instance.modules.append(
                 contentsOf: chunk.map {
                     GUIMod(module: $0, instance: instance)
                 })
             handleProgress(percentProgress)
         }
-
+        
+        try await refreshModuleStates(for: instance, with: delegate)
+    }
+    
+    func refreshModuleStates(
+        for instance: GUIInstance,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        let states = try await client.getModuleStates(for: instance.ckan, with: delegate)
+        
+        for stateUpdate in states {
+            instance.modules[id: stateUpdate.moduleId]?.applyStateUpdate(stateUpdate)
+        }
     }
 
     init() {}
