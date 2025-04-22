@@ -8,7 +8,7 @@
 import Foundation
 
 /// An installed module managed by CKAN.
-public struct ManagedInstalledModule {
+public struct ManagedInstalledModule: Sendable, Equatable {
     /// The date the install was performed
     public var date: Date
     /// Which module was installed
@@ -30,7 +30,7 @@ public struct ManagedInstalledModule {
 /// An installed module managed externally.
 ///
 /// Cannot be uninstalled.
-public struct UnmanagedInstalledModule {
+public struct UnmanagedInstalledModule: Sendable, Equatable {
     public var version: String?
 
     internal init(version: String? = nil) {
@@ -38,7 +38,7 @@ public struct UnmanagedInstalledModule {
     }
 }
 
-public enum InstalledModule {
+public enum InstalledModule: Sendable, Equatable {
     case managed(ManagedInstalledModule)
     case unmanaged(UnmanagedInstalledModule)
 

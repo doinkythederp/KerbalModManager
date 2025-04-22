@@ -24,7 +24,7 @@ public actor CKANClient {
         do {
             try await grpcClient.runConnections()
         } catch {
-            print(error)
+            logger.error("Failed to start connection: \(error.localizedDescription)")
         }
     }
 
@@ -40,14 +40,14 @@ public actor CKANClient {
             try await writer.write(contentsOf: pendingMessages)
         }
 
-        print("Making request")
+        logger.trace("Making request")
         do {
             return try await ckanClient.processAction(request: req) { response in
                 
                 var results: [T] = []
                 
                 for try await replyMsg in response.messages {
-                    print("Got reply")
+                    logger.trace("Got reply")
 
                     var status = replyMsg.status
                     try await self.handleReply(
@@ -156,7 +156,7 @@ public actor CKANClient {
     func getCkanInstances(with delegate: CkanActionDelegate)
         async throws(CkanError) -> [Ckan_Instance]
     {
-        print("Getting instance list")
+        logger.debug("Getting instance list")
         let message = Ckan_ActionMessage.with {
             $0.instancesListRequest = Ckan_InstancesListRequest()
         }
@@ -193,7 +193,7 @@ public actor CKANClient {
         forceLock: Bool = false,
         with delegate: CkanActionDelegate
     ) async throws(CkanError) {
-        print("Prepopulating registry")
+        logger.debug("Prepopulating registry")
 
         let message = Ckan_ActionMessage.with {
             $0.registryPrepopulateRequest =
@@ -222,7 +222,7 @@ public actor CKANClient {
         with delegate: CkanActionDelegate,
         handleChunk: @isolated(any) @Sendable @escaping ([Ckan_Module], UInt32) -> Void
     ) async throws(CkanError) {
-        print("Getting available modules")
+        logger.debug("Getting available modules")
         let message = Ckan_ActionMessage.with {
             $0.registryAvailableModulesRequest =
                 Ckan_RegistryAvailableModulesRequest.with {
@@ -252,8 +252,38 @@ public actor CKANClient {
         try await getCkanModules(availableTo: instance.name, with: delegate) { @MainActor chunk, remaining in
             totalReceived += chunk.count
             let percentProgress = Double(totalReceived) / Double(totalReceived + Int(remaining))
-            handleChunk(chunk.map { CkanModule(from: $0) }, percentProgress)
+            handleChunk(chunk.map(CkanModule.init), percentProgress)
         }
+    }
+    
+    func getModuleStates(
+        forInstance instanceName: String,
+        compatOptions: GameInstance.CompatabilityOptions? = nil,
+        heldModules: Set<String> = [],
+        incompleteModules: Set<String> = [],
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) -> [ModuleState] {
+        logger.debug("Fetching module states")
+        
+        let message = Ckan_ActionMessage.with {
+            $0.registryModuleStatesRequest =
+                Ckan_RegistryModuleStatesRequest.with {
+                    $0.instanceName = instanceName
+                    if let compatOptions {
+                        $0.compatOptions = Ckan_Instance.CompatOptions(from: compatOptions)
+                    }
+                    $0.heldModuleIdents = Array(heldModules)
+                    $0.incompleteModuleIdents = Array(incompleteModules)
+                }
+        }
+        
+        let reply = try await performRegistryAction(message, with: delegate)
+        
+        guard case .moduleStates(let reply) = reply.results else {
+            throw CkanError.responseNotReceived
+        }
+        
+        return reply.states.map(ModuleState.init)
     }
 
     deinit {

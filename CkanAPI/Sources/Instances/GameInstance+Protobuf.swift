@@ -41,3 +41,20 @@ extension GameInstance {
 
     }
 }
+
+extension Ckan_Instance.VersionCompatibility {
+    init(from compat: GameInstance.VersionCompatibility) {
+        self.compatibleVersions = compat.additionalCompatibleVersions.map(Ckan_Game.Version.init)
+        if let version = compat.gameVersionWhenLastUpdated {
+            self.gameVersionWhenLastUpdated = Ckan_Game.Version(from: version)
+        }
+    }
+}
+
+extension Ckan_Instance.CompatOptions {
+    init(from compat: GameInstance.CompatabilityOptions) {
+        self.stabilityTolerance = compat.stabilityTolerance.rawValue
+        self.versionCompatibility = Ckan_Instance.VersionCompatibility(from: compat.versionCompatibility)
+        self.stabilityToleranceOverrides = compat.stabilityToleranceOverrides.mapValues(\.rawValue)
+    }
+}

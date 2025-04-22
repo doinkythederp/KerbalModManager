@@ -283,3 +283,23 @@ extension CkanModule.Release.Resources {
         return OrderedDictionary(uniqueKeysWithValues: compacted)
     }
 }
+
+/// Represents a state update regarding a specific module as it relates to a specific instance.
+public struct ModuleState: Sendable, Equatable, Identifiable {
+    public var id: String { moduleId }
+    
+    /// The ID of the module this struct describes
+    public var moduleId: String
+    
+    /// If the module is installed in the instance, this property describes how
+    public var installState: InstalledModule?
+    
+    /// Describes if the module is outdated or is missing files
+    public var canBeUpgraded: Bool
+    
+    /// Describes if the module is compatible with the instance
+    public var isCompatible: Bool
+    
+    /// The version of the module most relevant to the instance
+    public var currentVersion: String?
+}

@@ -5,9 +5,9 @@
 //  Created by Lewis McClelland on 3/25/25.
 //
 
+import Collections
 import Foundation
 import IdentifiedCollections
-import Collections
 
 extension CkanModule {
     convenience init(from ckan: Ckan_Module) {
@@ -110,6 +110,17 @@ extension CkanModule.Release.Status {
             default: .stable
             }
     }
+
+    var rawValue: Ckan_Module.ReleaseStatus {
+        switch self {
+        case .stable:
+            .mrsStable
+        case .testing:
+            .mrsTesting
+        case .development:
+            .mrsDevelopment
+        }
+    }
 }
 
 extension CkanModule.Release.Relationship {
@@ -142,6 +153,43 @@ extension CkanModule.Release.DirectRelationship {
         }
         if ckan.hasVersion {
             version = ckan.version
+        }
+    }
+}
+
+extension ModuleState {
+    init(from ckan: Ckan_ModuleState) {
+        moduleId = ckan.identifier
+        if let install = ckan.install {
+            installState = InstalledModule(from: install)
+        }
+        canBeUpgraded = ckan.canBeUpgraded
+        isCompatible = ckan.isCompatible
+        if ckan.hasCurrentRelease {
+            currentVersion = ckan.currentRelease
+        }
+    }
+}
+
+extension InstalledModule {
+    init(from ckan: Ckan_ModuleState.OneOf_Install) {
+        switch ckan {
+        case .managedInstall(let managed):
+            self = .managed(
+                ManagedInstalledModule(
+                    date: managed.installDate.date,
+                    version: managed.releaseVersion,
+                    wasAutoInstalled: managed.isAutoInstalled
+                )
+            )
+
+        case .unmanagedInstall(let unmanaged):
+            var install = UnmanagedInstalledModule()
+            if unmanaged.hasReleaseVersion {
+                install.version = unmanaged.releaseVersion
+            }
+
+            self = .unmanaged(install)
         }
     }
 }
