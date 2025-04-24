@@ -11,10 +11,10 @@ import Foundation
 import IdentifiedCollections
 
 @Observable final class GUIMod: Identifiable {
-    var id: CkanModule.ID { module.id }
-
+    let id: ModuleId
     let module: CkanModule
     let instance: GUIInstance
+    
 
     var install: InstalledModule?
 
@@ -33,6 +33,7 @@ import IdentifiedCollections
         instance: GUIInstance,
         install: InstalledModule? = nil
     ) {
+        id = module.id
         self.module = module
         self.instance = instance
         self.install = install

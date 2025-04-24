@@ -23,9 +23,16 @@ extension GameInstance {
             compatabilityOptions: GameInstance.CompatabilityOptions(
                 stabilityTolerance: CkanModule.Release.Status(
                     from: ckan.compatOptions.stabilityTolerance),
-                stabilityToleranceOverrides: ckan.compatOptions
-                    .stabilityToleranceOverrides
-                    .mapValues(CkanModule.Release.Status.init),
+                stabilityToleranceOverrides:
+                    Dictionary(
+                        uniqueKeysWithValues:
+                            ckan.compatOptions.stabilityToleranceOverrides
+                            .map { k, v in
+                                (
+                                    ModuleId(k),
+                                    CkanModule.Release.Status(from: v)
+                                )
+                            }),
                 versionCompatibility: GameInstance.VersionCompatibility(
                     Set(
                         ckan.compatOptions.versionCompatibility
@@ -63,7 +70,10 @@ extension Ckan_Instance.CompatOptions {
         self.stabilityTolerance = compat.stabilityTolerance.rawValue
         self.versionCompatibility = Ckan_Instance.VersionCompatibility(
             from: compat.versionCompatibility)
-        self.stabilityToleranceOverrides = compat.stabilityToleranceOverrides
-            .mapValues(\.rawValue)
+        self.stabilityToleranceOverrides =
+            Dictionary(
+                uniqueKeysWithValues:
+                    compat.stabilityToleranceOverrides
+                    .map { k, v in (k.value, v.rawValue) })
     }
 }

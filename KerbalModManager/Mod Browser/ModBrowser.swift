@@ -231,6 +231,9 @@ struct ModBrowser: View {
                 for: instance, with: ckanActionDelegate) { progress in
                     loadProgress = 50 + progress * 50.0
                 }
+            
+            state.invalidateSearchResults()
+            
             showLoading = false
         } catch {
             logger.error("Loading mod list failed: \(error.localizedDescription)")

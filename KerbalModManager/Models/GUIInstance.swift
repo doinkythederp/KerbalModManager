@@ -5,12 +5,12 @@
 //  Created by Lewis McClelland on 4/14/25.
 //
 
-import Foundation
-import Observation
-import CkanAPI
 import AppKit
+import CkanAPI
 import Collections
+import Foundation
 import IdentifiedCollections
+import Observation
 
 @Observable
 final class GUIInstance: Identifiable {
@@ -19,20 +19,23 @@ final class GUIInstance: Identifiable {
     var ckan: GameInstance
 
     var hasPrepopulatedRegistry = false
-    
-    var modules = IdentifiedArray<String, GUIMod>(id: \.module.id)
-    
-    private(set) var compatibleModules = IdentifiedArray<String, GUIMod>(id: \.module.id)
-    
+
+    var modules = IdentifiedArray<ModuleId, GUIMod>(id: \.module.id)
+
+    private(set) var compatibleModules = IdentifiedArray<ModuleId, GUIMod>(
+        id: \.module.id)
+
     func index(module: GUIMod) {
         assert(modules.contains(module))
-        
+
         if module.isCompatible {
             compatibleModules.append(module)
         } else {
             compatibleModules.remove(module)
         }
     }
+
+    private(set) var insights = Insights()
 
     func copyDirectory() {
         let pasteboard = NSPasteboard.general
@@ -45,8 +48,33 @@ final class GUIInstance: Identifiable {
         NSWorkspace.shared.activateFileViewerSelecting([ckan.fileURL])
     }
 
+    func refreshInsights() {
+        insights = Insights(for: self)
+    }
+
     init(_ ckanInstance: GameInstance) {
         self.ckan = ckanInstance
+    }
+
+    struct Insights {
+        var top10Downloads: Set<ModuleId> = []
+        var top100Downloads: Set<ModuleId> = []
+
+        init() {}
+
+        init(for instance: GUIInstance) {
+            let topDownloads = instance.modules
+                .sorted(
+                    using:
+                        KeyPathComparator(
+                            \.currentRelease.downloadCount,
+                            order: .reverse)
+                )
+                .map(\.id)
+
+            top10Downloads = Set(topDownloads.prefix(10))
+            top100Downloads = Set(topDownloads.prefix(100))
+        }
     }
 }
 

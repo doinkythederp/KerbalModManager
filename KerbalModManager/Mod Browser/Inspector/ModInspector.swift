@@ -54,23 +54,40 @@ struct ModInspector: View {
                                     .textSelection(.enabled)
                             }
                             .foregroundStyle(.secondary)
-
-                            let downloadStyle =
-                                if current.downloadCount > 100_000 {
-                                    Color.green
-                                } else if current.downloadCount > 10_000 {
-                                    Color.orange
-                                } else {
-                                    Color.secondary
+                            
+                            Grid(alignment: .center, verticalSpacing: 5) {
+                                let insights = state.instance.insights
+                                
+                                if insights.top100Downloads.contains(module.id) {
+                                    let isTop10 = insights.top10Downloads.contains(module.id)
+                                    
+                                    GridRow {
+                                        Image(systemSymbol: .medalStar)
+                                        Text("Top \(isTop10 ? 10 : 100) most downloaded")
+                                            .gridCellAnchor(.topLeading)
+                                    }
+                                    .bold(isTop10)
                                 }
-
-                            Label(
-                                "\(current.downloadCount) downloads",
-                                systemSymbol: .arrowDownCircleFill
-                            )
+                                
+                                let downloadStyle =
+                                    if current.downloadCount > 100_000 {
+                                        Color.green
+                                    } else if current.downloadCount > 10_000 {
+                                        Color.orange
+                                    } else {
+                                        Color.secondary
+                                    }
+                                
+                                GridRow {
+                                    Image(systemSymbol: .arrowDownCircleFill)
+                                    Text("\(current.downloadCount) downloads")
+                                        .gridCellAnchor(.topLeading)
+                                }
+                                .foregroundStyle(downloadStyle)
+                            }
                             .symbolRenderingMode(.hierarchical)
                             .padding(.top, 1)
-                            .foregroundStyle(downloadStyle)
+
 
                             WrappingHStack(
                                 alignment: .leading,

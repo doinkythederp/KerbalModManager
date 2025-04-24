@@ -110,6 +110,14 @@ import SwiftUI
 
         search.tokens.append(contentsOf: tokens)
     }
+    
+    /// Force a refresh of the search results.
+    ///
+    /// This is useful if the metadata of the available modules has updated without the IDs changing.
+    func invalidateSearchResults() {
+        searchResults = nil
+        searchResultsHash = nil
+    }
 
     init(instance: GUIInstance) {
         self.instance = instance

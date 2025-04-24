@@ -62,6 +62,8 @@ import IdentifiedCollections
         for stateUpdate in states {
             instance.modules[id: stateUpdate.moduleId]?.applyStateUpdate(stateUpdate)
         }
+        
+        instance.refreshInsights()
     }
 
     init() {}

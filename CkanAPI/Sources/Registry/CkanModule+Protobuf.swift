@@ -144,7 +144,7 @@ extension CkanModule.Release.Relationship {
 
 extension CkanModule.Release.DirectRelationship {
     init(from ckan: Ckan_Module.Relationship.DirectRelationship) {
-        name = ckan.name
+        reference = ModuleId(ckan.name)
         if ckan.hasMaxVersion {
             maxVersion = ckan.maxVersion
         }
@@ -159,7 +159,7 @@ extension CkanModule.Release.DirectRelationship {
 
 extension ModuleState {
     init(from ckan: Ckan_ModuleState) {
-        moduleId = ckan.identifier
+        moduleId = ModuleId(ckan.identifier)
         if let install = ckan.install {
             installState = InstalledModule(from: install)
         }

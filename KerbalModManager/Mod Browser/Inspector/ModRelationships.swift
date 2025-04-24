@@ -172,13 +172,9 @@ private struct ModRelationshipView: View {
         case .direct(let direct):
             GroupBox {
                 HStack {
-                    let name =
-                        state.instance
-                        .modules[id: direct.name]?
-                        .currentRelease.name ?? direct.name
-
-                    let isRealModule = state.instance.modules.ids.contains(
-                        direct.name)
+                    let realModule = state.instance.modules[id: direct.reference]
+                    let name = realModule?.currentRelease.name ?? direct.reference.value
+                    let isRealModule = realModule != nil
 
                     Label(
                         name,
@@ -191,7 +187,7 @@ private struct ModRelationshipView: View {
                     Spacer()
 
                     Button {
-                        show(direct.name)
+                        show(direct.reference)
                     } label: {
                         if isRealModule {
                             Label("View", systemSymbol: .eye)
@@ -223,7 +219,7 @@ private struct ModRelationshipView: View {
         }
     }
 
-    func show(_ targetId: String) {
+    func show(_ targetId: ModuleId) {
         if let module = state.instance.modules[id: targetId] {
             state.reveal(module: module)
             return
@@ -231,7 +227,7 @@ private struct ModRelationshipView: View {
 
         // Something `provides` this relationship, it's not a real module
         state.search(tokens: [
-            ModSearchToken(category: .provides, searchTerm: targetId)
+            ModSearchToken(category: .provides, searchTerm: targetId.value)
         ])
     }
 }

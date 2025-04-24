@@ -11,17 +11,21 @@ import IdentifiedCollections
 
 /// A module that exists in the CKAN registry.
 @Observable public class CkanModule: Identifiable {
-    public let id: String
+    public let id: ModuleId
     public var releases: IdentifiedArrayOf<Release>
 
     public init(id: String, releases: IdentifiedArrayOf<Release> = []) {
-        self.id = id
+        self.id = ModuleId(id)
         self.releases = releases
     }
 
     /// A specific version of a module.
     @Observable public class Release: Identifiable {
-        public var moduleId: String
+        public var id: (ModuleId, CkanModule.Version) {
+            (moduleId, version)
+        }
+        
+        public let moduleId: ModuleId
         public var name: String
         public var version: CkanModule.Version
 
@@ -136,11 +140,11 @@ import IdentifiedCollections
                 self.type = type
             }
 
-            public init(direct module: String) {
-                self.init(.direct(DirectRelationship(name: module)))
+            public init(direct module: ModuleId) {
+                self.init(.direct(DirectRelationship(referencing: module)))
             }
 
-            public init(anyOf modules: [String]) {
+            public init(anyOf modules: [ModuleId]) {
                 self.init(
                     .anyOf(
                         allowedModules: modules.map {
@@ -155,16 +159,19 @@ import IdentifiedCollections
         }
 
         public struct DirectRelationship {
-            public var name: String
+            /// Either references a real, indexed module or a module that provides the specified virtual module.
+            public var reference: ModuleId
             public var maxVersion: String?
             public var minVersion: String?
             public var version: String?
 
             public init(
-                name: String, maxVersion: String? = nil, minVersion: String? = nil,
+                referencing reference: ModuleId,
+                maxVersion: String? = nil,
+                minVersion: String? = nil,
                 version: String? = nil
             ) {
-                self.name = name
+                self.reference = reference
                 self.maxVersion = maxVersion
                 self.minVersion = minVersion
                 self.version = version
@@ -190,7 +197,7 @@ import IdentifiedCollections
             installSizeBytes: UInt = 0,
             downloadCount: UInt
         ) {
-            self.moduleId = id
+            self.moduleId = ModuleId(id)
             self.name = name
             self.version = version
             self.abstract = abstract
@@ -286,10 +293,10 @@ extension CkanModule.Release.Resources {
 
 /// Represents a state update regarding a specific module as it relates to a specific instance.
 public struct ModuleState: Sendable, Equatable, Identifiable {
-    public var id: String { moduleId }
+    public var id: ModuleId { moduleId }
     
     /// The ID of the module this struct describes
-    public var moduleId: String
+    public var moduleId: ModuleId
     
     /// If the module is installed in the instance, this property describes how
     public var installState: InstalledModule?
@@ -302,4 +309,21 @@ public struct ModuleState: Sendable, Equatable, Identifiable {
     
     /// The version of the module most relevant to the instance
     public var currentVersion: String
+}
+
+/// A real or virtual module ID
+public struct ModuleId: Sendable, Equatable, Hashable, CustomStringConvertible, ExpressibleByStringLiteral {
+    public init(_ value: String) {
+        self.value = value
+    }
+    
+    public init(stringLiteral value: String) {
+        self.init(value)
+    }
+    
+    public var value: String
+    
+    public var description: String {
+        value
+    }
 }

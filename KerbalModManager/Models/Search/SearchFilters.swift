@@ -53,20 +53,20 @@ enum SimpleModFilter: Hashable, CaseIterable,
     }
 
     func check(
-        _ module: CkanModule.Release,
+        _ release: CkanModule.Release,
         instance: GUIInstance,
         modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
     ) -> Bool {
         switch self {
         case .compatible:
-            instance.compatibleModules.ids.contains(module.moduleId)
+            instance.compatibleModules.ids.contains(release.moduleId)
         case .installed:
             true  // TODO: once we track installs
         case .upgradable:
             true  // TODO: once we track installs
 
         default:
-            !(counterpart!.check(module, instance: instance, modules: modules))
+            !(counterpart!.check(release, instance: instance, modules: modules))
         }
     }
 }
@@ -118,33 +118,33 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
     var searchTerm: String
 
     func check(
-        _ module: CkanModule.Release,
+        _ release: CkanModule.Release,
         instance: GUIInstance,
         modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
     ) -> Bool {
         switch self.category {
         case .name:
-            module.name.localizedCaseInsensitiveContains(searchTerm)
+            release.name.localizedCaseInsensitiveContains(searchTerm)
         case .author:
-            module.authors.containsCaseInsensitiveString(searchTerm)
+            release.authors.containsCaseInsensitiveString(searchTerm)
         case .abstract:
-            module.abstract.localizedCaseInsensitiveContains(searchTerm)
+            release.abstract.localizedCaseInsensitiveContains(searchTerm)
         case .depends:
-            Self.flattenRelationships(module.depends, modules: modules)
+            Self.flattenRelationships(release.depends, modules: modules)
                 .containsCaseInsensitiveString(searchTerm)
         case .recommends:
-            Self.flattenRelationships(module.recommends, modules: modules)
+            Self.flattenRelationships(release.recommends, modules: modules)
                 .containsCaseInsensitiveString(searchTerm)
         case .suggests:
-            Self.flattenRelationships(module.suggests, modules: modules)
+            Self.flattenRelationships(release.suggests, modules: modules)
                 .containsCaseInsensitiveString(searchTerm)
         case .conflicts:
-            Self.flattenRelationships(module.conflicts, modules: modules)
+            Self.flattenRelationships(release.conflicts, modules: modules)
                 .containsCaseInsensitiveString(searchTerm)
         case .provides:
-            module.provides.containsCaseInsensitiveString(searchTerm)
+            release.provides.containsCaseInsensitiveString(searchTerm)
         case .tags:
-            module.tags.containsCaseInsensitiveString(searchTerm)
+            release.tags.containsCaseInsensitiveString(searchTerm)
         }
     }
 
@@ -156,7 +156,7 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
             .flatMap {
                 switch $0.type {
                 case .direct(let direct):
-                    [modules[id: direct.name]?.name ?? direct.name]
+                    [modules[id: direct.reference]?.name ?? direct.reference.value]
                 case .anyOf(allowedModules: let allowed):
                     flattenRelationships(allowed, modules: modules)
                 }
@@ -176,7 +176,7 @@ extension [String] {
 
 protocol ModSearchFilter {
     func check(
-        _ module: CkanModule.Release,
+        _ release: CkanModule.Release,
         instance: GUIInstance,
         modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
     ) -> Bool
