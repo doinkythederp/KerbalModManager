@@ -315,6 +315,40 @@ public actor CKANClient {
         )
     }
 
+    func resolveOptionalDependencies(
+        for instanceName: String,
+        modules: Set<ReleaseId>,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) -> OptionalDependencies {
+        logger.debug("Resolving optional dependencies")
+
+        let message = Ckan_ActionMessage.with {
+            $0.registryOptionalDependenciesRequest =
+                Ckan_RegistryOptionalDependenciesRequest.with {
+                    $0.instanceName = instanceName
+                    $0.modules = modules.map(Ckan_ModuleReleaseRef.init)
+                }
+        }
+
+        let reply = try await performRegistryAction(message, with: delegate)
+
+        guard case .optionalDependencies(let reply) = reply.results else {
+            throw CkanError.responseNotReceived
+        }
+
+        return OptionalDependencies(from: reply)
+    }
+
+    @MainActor
+    public func resolveOptionalDependencies(
+        for instance: GameInstance,
+        modules: Set<ReleaseId>,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) -> OptionalDependencies {
+        return try await resolveOptionalDependencies(
+            for: instance.name, modules: modules, with: delegate)
+    }
+
     deinit {
         self.grpcClient.beginGracefulShutdown()
     }
@@ -359,4 +393,33 @@ extension CkanActionDelegate {
 
 public struct EmptyCkanActionDelegate: CkanActionDelegate {
     public init() {}
+}
+
+public struct OptionalDependencies: Sendable, Equatable, Hashable {
+    public init(
+        recommended: Set<OptionalDependencies.Dependency>,
+        suggested: Set<OptionalDependencies.Dependency>,
+        supporters: Set<OptionalDependencies.Dependency>,
+        installableRecommended: Set<ModuleId>
+    ) {
+        self.recommended = recommended
+        self.suggested = suggested
+        self.supporters = supporters
+        self.installableRecommended = installableRecommended
+    }
+
+    public struct Dependency: Sendable, Equatable, Hashable {
+        public init(id: ReleaseId, source: Set<ModuleId>) {
+            self.id = id
+            self.sources = source
+        }
+
+        public var id: ReleaseId
+        public var sources: Set<ModuleId>
+    }
+
+    public var recommended: Set<Dependency>
+    public var suggested: Set<Dependency>
+    public var supporters: Set<Dependency>
+    public var installableRecommended: Set<ModuleId>
 }

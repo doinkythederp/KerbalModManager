@@ -191,3 +191,33 @@ extension InstalledModule {
         }
     }
 }
+
+extension ReleaseId {
+    init(from ckan: Ckan_ModuleReleaseRef) {
+        moduleId = ModuleId(ckan.id)
+        version = ckan.version
+    }
+}
+
+extension Ckan_ModuleReleaseRef {
+    init(from releaseId: ReleaseId) {
+        id = releaseId.moduleId.value
+        version = releaseId.version
+    }
+}
+
+extension OptionalDependencies {
+    init(from ckan: Ckan_RegistryOptionalDependenciesReply) {
+        recommended = Set(ckan.recommended.map(Dependency.init))
+        suggested = Set(ckan.suggested.map(Dependency.init))
+        supporters = Set(ckan.supporters.map(Dependency.init))
+        installableRecommended = Set(ckan.installableRecommended.map { ModuleId($0) })
+    }
+}
+
+extension OptionalDependencies.Dependency {
+    init(from ckan: Ckan_RegistryOptionalDependenciesReply.Dependency) {
+        id = ReleaseId(from: ckan.module)
+        sources = Set(ckan.sources.map { ModuleId($0) })
+    }
+}

@@ -21,8 +21,8 @@ import IdentifiedCollections
 
     /// A specific version of a module.
     @Observable public class Release: Identifiable {
-        public var id: (ModuleId, CkanModule.Version) {
-            (moduleId, version)
+        public var id: ReleaseId {
+            ReleaseId(moduleId: moduleId, version: version.value)
         }
         
         public let moduleId: ModuleId
@@ -326,4 +326,15 @@ public struct ModuleId: Sendable, Equatable, Hashable, CustomStringConvertible, 
     public var description: String {
         value
     }
+}
+
+/// A unique identifier for a module release.
+public struct ReleaseId: Sendable, Equatable, Hashable {
+    public init(moduleId: ModuleId, version: String) {
+        self.moduleId = moduleId
+        self.version = version
+    }
+    
+    public var moduleId: ModuleId
+    public var version: String
 }
