@@ -14,9 +14,21 @@ import IdentifiedCollections
     let id: ModuleId
     let module: CkanModule
     let instance: GUIInstance
-    
 
     var install: InstalledModule?
+    
+    /// A property containing the release of the module which is currently installed, if it is known.
+    ///
+    /// Sometimes a module might be installed without there being a known release (for example, this
+    /// happens if the module was installed without using CKAN and thereby isn't managed).
+    var installedRelease: CkanModule.Release? {
+        guard case .managed(let install) = install,
+              let release = module.releases[id: install.release] else {
+            return nil
+        }
+        
+        return release
+    }
 
     /// The most appropriate release of the mod to show to the user.
     ///

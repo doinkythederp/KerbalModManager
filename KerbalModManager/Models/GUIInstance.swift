@@ -37,7 +37,7 @@ final class GUIInstance: Identifiable {
 
     private(set) var insights = Insights()
 
-    func copyDirectory() {
+    func copyDirectoryToPasteboard() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(ckan.directory.string, forType: .string)

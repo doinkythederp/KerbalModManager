@@ -57,8 +57,22 @@ struct ModBrowser: View {
             .disabledCustomizationBehavior(.all)
 
             TableColumn("Name", value: \.currentRelease.name) { module in
-                Text(module.currentRelease.name)
-                    .id(module.id)
+                VStack(alignment: .leading) {
+                    Text(module.currentRelease.name)
+                        .id(module.id)
+                    let state = state.changePlan.status(of: module)
+                    Text(String(reflecting: state))
+                    switch state {
+                    case .removing:
+                        Label("Removing", systemImage: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                    case .installed:
+                        Label("Installed", systemImage: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    default:
+                        EmptyView()
+                    }
+                }
             }
             .width(ideal: 200)
             .customizationID("name")
@@ -246,7 +260,7 @@ struct ModBrowser: View {
 
 extension ModBrowser: CkanActionDelegate {
     nonisolated func handleProgress(_ progress: ActionProgress) async throws {
-        print(
+        logger.debug(
             "Progress: \(progress.percentCompletion)% \(progress.message ?? "")"
         )
         await MainActor.run {

@@ -161,7 +161,7 @@ extension ModuleState {
     init(from ckan: Ckan_ModuleState) {
         moduleId = ModuleId(ckan.identifier)
         if let install = ckan.install {
-            installState = InstalledModule(from: install)
+            installState = InstalledModule(from: install, moduleId: moduleId)
         }
         canBeUpgraded = ckan.canBeUpgraded
         isCompatible = ckan.isCompatible
@@ -170,13 +170,13 @@ extension ModuleState {
 }
 
 extension InstalledModule {
-    init(from ckan: Ckan_ModuleState.OneOf_Install) {
+    init(from ckan: Ckan_ModuleState.OneOf_Install, moduleId: ModuleId) {
         switch ckan {
         case .managedInstall(let managed):
             self = .managed(
                 ManagedInstalledModule(
+                    release: ReleaseId(moduleId: moduleId, version: managed.releaseVersion),
                     date: managed.installDate.date,
-                    version: managed.releaseVersion,
                     wasAutoInstalled: managed.isAutoInstalled
                 )
             )

@@ -9,20 +9,20 @@ import Foundation
 
 /// An installed module managed by CKAN.
 public struct ManagedInstalledModule: Sendable, Equatable {
+    /// Which module is installed
+    public var release: ReleaseId
     /// The date the install was performed
     public var date: Date
-    /// Which module was installed
-    public var version: String
     /// Whether the user implicitly requested the module to be installed as a dependency
     public var wasAutoInstalled = false
 
     public init(
+        release: ReleaseId,
         date: Date,
-        version: String,
         wasAutoInstalled: Bool = false
     ) {
+        self.release = release
         self.date = date
-        self.version = version
         self.wasAutoInstalled = wasAutoInstalled
     }
 }
@@ -45,7 +45,7 @@ public enum InstalledModule: Sendable, Equatable {
     public var version: String? {
         switch self {
         case .managed(let managed):
-            managed.version
+            managed.release.version
         case .unmanaged(let unmanaged):
             unmanaged.version
         }

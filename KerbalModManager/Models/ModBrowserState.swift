@@ -14,14 +14,14 @@ import SwiftUI
 /// Tracks the state of a mod browser for a certain instance.
 @MainActor @Observable final class ModBrowserState {
     let instance: GUIInstance
-    
-    var selectedMod: GUIMod.ID?
+
+    var selectedMod: ModuleId?
     var sortOrder = [KeyPathComparator(\GUIMod.currentRelease.name)]
     var scrollProxy: ScrollViewProxy?
 
     var isSearchPresented = false
     var search = SearchQuery()
-    @ObservationIgnored private var searchResults: OrderedSet<GUIMod.ID>?
+    @ObservationIgnored private var searchResults: OrderedSet<ModuleId>?
     @ObservationIgnored private var searchResultsHash: Int?
 
     /// Whether to prefer adding to the existing search query rather than replacing it.
@@ -35,7 +35,9 @@ import SwiftUI
     /// This value is observed for changes by the mod browser, so setting it to a certain mod will update the UI.
     /// Prefer using ``ModBrowserState/reveal(module:)`` instead of setting this directly, because it
     /// also handles clearing the search box and updating the selected mod.
-    var modulePendingReveal: GUIMod.ID?
+    var modulePendingReveal: ModuleId?
+    
+    var changePlan = ModuleChangePlan()
 
     /// Filter the given modules to only include results that satisfy the current search query.
     ///
@@ -97,9 +99,14 @@ import SwiftUI
 
     /// Show the given module to the user.
     func reveal(module: GUIMod) {
+        reveal(id: module.id)
+    }
+
+    /// Show the module with the given ID to the user.
+    func reveal(id: ModuleId) {
         search.clearSearchBox()
-        selectedMod = module.id
-        modulePendingReveal = module.id
+        selectedMod = id
+        modulePendingReveal = id
     }
 
     /// Search for the given tokens, choosing to reset the search box based on the users' preference.
@@ -110,7 +117,7 @@ import SwiftUI
 
         search.tokens.append(contentsOf: tokens)
     }
-    
+
     /// Force a refresh of the search results.
     ///
     /// This is useful if the metadata of the available modules has updated without the IDs changing.
@@ -134,4 +141,114 @@ extension FocusedValues {
 
 extension ModBrowserState: FocusedValueKey {
     typealias Value = ModBrowserState
+}
+
+struct ModuleChangePlan: Equatable {
+    /// A set of module releases that should be installed after the plan has been executed.
+    ///
+    /// This property also includes planned upgrades.
+    private(set) var pendingInstallation = [ModuleId: ReleaseId]()
+    /// A set of modules that will be removed when the plan is executed.
+    private(set) var pendingRemoval = Set<ModuleId>()
+    /// A set of modules whos replacements will be installed after the plan is executed.
+    private(set) var pendingReplacement = Set<ModuleId>()
+
+    /// Plan or cancel the installation of a module.
+    mutating func setPendingRelease(_ release: ReleaseId?, for module: ModuleId)
+    {
+        pendingRemoval.remove(module)
+        pendingInstallation[module] = release
+    }
+
+    /// Plan or cancel the removal of a module.
+    mutating func setRemoved(_ removed: Bool, for module: ModuleId) {
+        pendingInstallation[module] = nil
+        if removed {
+            pendingRemoval.insert(module)
+        } else {
+            pendingRemoval.remove(module)
+        }
+    }
+
+    /// Plan or cancel the replacement of a module.
+    mutating func setReplaced(_ replaced: Bool, for module: ModuleId) {
+        pendingRemoval.remove(module)
+        pendingInstallation[module] = nil
+
+        if replaced {
+            pendingReplacement.insert(module)
+        } else {
+            pendingReplacement.remove(module)
+        }
+    }
+
+    /// A Boolean value that indicates if no changes are planned
+    var isEmpty: Bool {
+        pendingInstallation.isEmpty
+            && pendingRemoval.isEmpty
+            && pendingReplacement.isEmpty
+    }
+
+    /// Returns the current status of the given mod in the context of this change plan.
+    ///
+    /// This may be used to display the state of the module to the user.
+    func status(of mod: GUIMod) -> Status {
+        if let install = mod.install {
+            if pendingRemoval.contains(mod.id) {
+                return .removing
+            }
+
+            if mod.canBeUpgraded {
+                if pendingInstallation[mod.id] == nil {
+                    return .upgradable
+                } else {
+                    return .upgrading
+                }
+            }
+
+            guard case .managed(let install) = install else {
+                return .autoDetected
+            }
+
+            if pendingReplacement.contains(mod.id) {
+                return .replacing
+            }
+
+            if mod.installedRelease?.replacedBy != nil {
+                return .replaceable
+            }
+            
+            // At the time of writing, there's not actually a way to represent this because ``GUIMod.currentRelease`` is non-nillable
+            if mod.compatibleReleases.isEmpty {
+                return .unavailable
+            }
+            
+            if install.wasAutoInstalled {
+                return .autoInstalled
+            }
+            
+            return .installed
+        }
+        
+        if pendingInstallation[mod.id] != nil {
+            return .installing
+        }
+
+        return .notInstalled
+    }
+
+    /// The status of a mod in the context of a change plan
+    enum Status {
+        case removing
+        case upgrading
+        case upgradable
+        case autoDetected
+        case replacing
+        case replaceable
+        case unavailable
+        case autoInstalled
+        case installed
+        case installing
+        case notInstalled
+    }
 }

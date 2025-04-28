@@ -33,7 +33,7 @@ struct InstanceCommands: Commands {
                 }
 
                 Button(copyLabel) {
-                    selectedInstance?.copyDirectory()
+                    selectedInstance?.copyDirectoryToPasteboard()
                 }
                 .keyboardShortcut("C", modifiers: [.command, .option])
             }

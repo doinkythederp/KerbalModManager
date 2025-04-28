@@ -110,7 +110,7 @@ struct InstanceTile: View {
                     instance.openInFinder()
                 }
                 Button("Copy Path", systemImage: "clipboard") {
-                    instance.copyDirectory()
+                    instance.copyDirectoryToPasteboard()
                 }
                 Text(instance.ckan.directory.string)
                     .textSelection(.enabled)
