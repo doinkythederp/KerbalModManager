@@ -329,7 +329,11 @@ public struct ModuleId: Sendable, Equatable, Hashable, CustomStringConvertible, 
 }
 
 /// A unique identifier for a module release.
-public struct ReleaseId: Sendable, Equatable, Hashable {
+public struct ReleaseId: Sendable, Equatable, Hashable, CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "\(moduleId)@\(version)"
+    }
+
     public init(moduleId: ModuleId, version: String) {
         self.moduleId = moduleId
         self.version = version

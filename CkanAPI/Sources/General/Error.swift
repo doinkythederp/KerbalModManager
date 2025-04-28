@@ -39,6 +39,8 @@ extension CkanError: LocalizedError {
             resource = "RPC failed: \(source.description)"
         case .unknownGameID(let id):
             resource = "The game \"\(id)\" is not supported."
+        case .unresolvedVirtualModules(let details):
+            resource = "Failed to automatically resolve the virtual module \(details.name) as requested by \(details.source.debugDescription) (\(details.candidates.count) candidates)"
         case .server(let source):
             return source.localizedDescription
         case .unknownError(let source):
