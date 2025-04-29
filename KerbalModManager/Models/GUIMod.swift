@@ -16,7 +16,7 @@ import IdentifiedCollections
     let instance: GUIInstance
 
     var install: InstalledModule?
-    
+
     /// A property containing the release of the module which is currently installed, if it is known.
     ///
     /// Sometimes a module might be installed without there being a known release (for example, this

@@ -219,7 +219,7 @@ struct ModuleChangePlan: Equatable {
             }
             
             // At the time of writing, there's not actually a way to represent this because ``GUIMod.currentRelease`` is non-nillable
-            if mod.compatibleReleases.isEmpty {
+            if !mod.module.containsRelease(stableEnoughFor: mod.instance.ckan.compatabilityOptions) {
                 return .unavailable
             }
             

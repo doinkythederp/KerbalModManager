@@ -19,12 +19,38 @@ import IdentifiedCollections
         self.releases = releases
     }
 
+    /// Create a list of releases that are stable enough for the given compatibility options.
+    ///
+    /// Does not handle game versions being compatible; a list of releases compatible with the desired instance
+    /// can instead be retrieved using a ``CKANClient``.
+    public func releases(
+        stableEnoughFor options: GameInstance.CompatabilityOptions
+    ) -> IdentifiedArrayOf<Release> {
+        let tolerance = options.stabilityTolerance(for: id)
+
+        return releases.filter { release in
+            release.meetsStabilityTolerance(tolerance)
+        }
+    }
+
+    /// Returns a Boolean value indicating whether any of the releases were stable enough for the
+    /// given compatability options.
+    public func containsRelease(
+        stableEnoughFor options: GameInstance.CompatabilityOptions
+    ) -> Bool {
+        let tolerance = options.stabilityTolerance(for: id)
+
+        return releases.contains { release in
+            release.meetsStabilityTolerance(tolerance)
+        }
+    }
+
     /// A specific version of a module.
     @Observable public class Release: Identifiable {
         public var id: ReleaseId {
             ReleaseId(moduleId: moduleId, version: version.value)
         }
-        
+
         public let moduleId: ModuleId
         public var name: String
         public var version: CkanModule.Version
@@ -58,6 +84,11 @@ import IdentifiedCollections
         public var installSizeBytes: UInt
         public var downloadCount: UInt
 
+        /// Returns a Boolean value indicating whether this release is at least as stable as the given tolerance.
+        public func meetsStabilityTolerance(_ tolerance: Status) -> Bool {
+            return releaseStatus >= tolerance
+        }
+
         public struct Resources {
             public var homepage: String?
             public var spacedock: String?
@@ -78,7 +109,8 @@ import IdentifiedCollections
                 homepage: String? = nil, spacedock: String? = nil,
                 curse: String? = nil, repository: String? = nil,
                 bugtracker: String? = nil, discussions: String? = nil,
-                ci: String? = nil, license: String? = nil, manual: String? = nil,
+                ci: String? = nil, license: String? = nil,
+                manual: String? = nil,
                 metanetkan: String? = nil, remoteAvc: String? = nil,
                 remoteSwinfo: String? = nil, store: String? = nil,
                 steamStore: String? = nil
@@ -106,10 +138,12 @@ import IdentifiedCollections
             case dlc
         }
 
-        public enum Status: CustomLocalizedStringResourceConvertible, Sendable, Equatable {
-            case stable
-            case testing
+        public enum Status: CustomLocalizedStringResourceConvertible, Sendable,
+            Equatable, Comparable
+        {
             case development
+            case testing
+            case stable
 
             public var localizedStringResource: LocalizedStringResource {
                 return switch self {
@@ -179,20 +213,25 @@ import IdentifiedCollections
         }
 
         public init(
-            id: String, name: String, version: CkanModule.Version, abstract: String,
-            description: String? = nil, kind: CkanModule.Release.Kind = .package,
+            id: String, name: String, version: CkanModule.Version,
+            abstract: String,
+            description: String? = nil,
+            kind: CkanModule.Release.Kind = .package,
             authors: [String] = [],
             licenses: [String] = [], resources: CkanModule.Release.Resources,
-            localizations: [Locale] = [], tags: [String] = [], releaseDate: Date,
+            localizations: [Locale] = [], tags: [String] = [],
+            releaseDate: Date,
             releaseStatus: CkanModule.Release.Status = .stable,
-            replacedBy: CkanModule.Release.Relationship? = nil, provides: [String] = [],
+            replacedBy: CkanModule.Release.Relationship? = nil,
+            provides: [String] = [],
             conflicts: [CkanModule.Release.Relationship] = [],
             depends: [CkanModule.Release.Relationship] = [],
             recommends: [CkanModule.Release.Relationship] = [],
             suggests: [CkanModule.Release.Relationship] = [],
             supports: [CkanModule.Release.Relationship] = [],
             kspVersion: GameVersion? = nil,
-            kspVersionMax: GameVersion? = nil, kspVersionMin: GameVersion? = nil,
+            kspVersionMax: GameVersion? = nil,
+            kspVersionMin: GameVersion? = nil,
             downloadUrls: [URL] = [], downloadSizeBytes: UInt,
             installSizeBytes: UInt = 0,
             downloadCount: UInt
@@ -227,7 +266,9 @@ import IdentifiedCollections
         }
     }
 
-    public struct Version: CustomStringConvertible, Equatable, Hashable, Sendable {
+    public struct Version: CustomStringConvertible, Equatable, Hashable,
+        Sendable
+    {
         public let value: String
 
         public let epoch: Int
@@ -244,7 +285,9 @@ import IdentifiedCollections
 
             if let epoch = match.output.epoch {
                 guard let epoch = Int(epoch) else {
-                    fatalError("Epoch '\(epoch)' in version '\(value)' is not an integer")
+                    fatalError(
+                        "Epoch '\(epoch)' in version '\(value)' is not an integer"
+                    )
                 }
 
                 self.epoch = epoch
@@ -294,42 +337,46 @@ extension CkanModule.Release.Resources {
 /// Represents a state update regarding a specific module as it relates to a specific instance.
 public struct ModuleState: Sendable, Equatable, Identifiable {
     public var id: ModuleId { moduleId }
-    
+
     /// The ID of the module this struct describes
     public var moduleId: ModuleId
-    
+
     /// If the module is installed in the instance, this property describes how
     public var installState: InstalledModule?
-    
+
     /// Describes if the module is outdated or is missing files
     public var canBeUpgraded: Bool
-    
+
     /// Describes if the module is compatible with the instance
     public var isCompatible: Bool
-    
+
     /// The version of the module most relevant to the instance
     public var currentVersion: String
 }
 
 /// A real or virtual module ID
-public struct ModuleId: Sendable, Equatable, Hashable, CustomStringConvertible, ExpressibleByStringLiteral {
+public struct ModuleId: Sendable, Equatable, Hashable, CustomStringConvertible,
+    ExpressibleByStringLiteral
+{
     public init(_ value: String) {
         self.value = value
     }
-    
+
     public init(stringLiteral value: String) {
         self.init(value)
     }
-    
+
     public var value: String
-    
+
     public var description: String {
         value
     }
 }
 
 /// A unique identifier for a module release.
-public struct ReleaseId: Sendable, Equatable, Hashable, CustomDebugStringConvertible {
+public struct ReleaseId: Sendable, Equatable, Hashable,
+    CustomDebugStringConvertible
+{
     public var debugDescription: String {
         "\(moduleId)@\(version)"
     }
@@ -338,7 +385,7 @@ public struct ReleaseId: Sendable, Equatable, Hashable, CustomDebugStringConvert
         self.moduleId = moduleId
         self.version = version
     }
-    
+
     public var moduleId: ModuleId
     public var version: String
 }

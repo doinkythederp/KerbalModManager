@@ -46,12 +46,16 @@ public struct GameInstance: Identifiable, Equatable {
     public struct CompatabilityOptions: Equatable, Sendable {
         public var stabilityTolerance = CkanModule.Release.Status.stable
         public var stabilityToleranceOverrides:
-            [CkanModule.ID: CkanModule.Release.Status] = [:]
+            [ModuleId: CkanModule.Release.Status] = [:]
         public var versionCompatibility = VersionCompatibility()
+
+        public func stabilityTolerance(for module: ModuleId) -> CkanModule.Release.Status {
+            stabilityToleranceOverrides[module] ?? stabilityTolerance
+        }
 
         public init(
             stabilityTolerance: CkanModule.Release.Status = .stable,
-            stabilityToleranceOverrides: [CkanModule.ID: CkanModule.Release.Status] = [:],
+            stabilityToleranceOverrides: [ModuleId: CkanModule.Release.Status] = [:],
             versionCompatibility: GameInstance.VersionCompatibility = .init()
         ) {
             self.stabilityTolerance = stabilityTolerance
