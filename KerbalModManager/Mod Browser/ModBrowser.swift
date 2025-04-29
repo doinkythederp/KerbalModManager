@@ -13,31 +13,82 @@ import WrappingHStack
 
 struct ModBrowser: View {
     var instance: GUIInstance
-    
-    init(instance: GUIInstance, showInspector: Bool = true) {
+
+    init(instance: GUIInstance) {
         self.instance = instance
         state = ModBrowserState(instance: instance)
-        self.showInspector = showInspector
     }
 
-    @Environment(Store.self) private var store: Store
+    @Environment(Store.self) private var store
     @Environment(\.ckanActionDelegate) private var ckanActionDelegate
 
+    @State private var state: ModBrowserState
     @State private var loadProgress = 0.0
     @State private var showLoading = false
+
+    var body: some View {
+        ModBrowserTable(instance: instance)
+            .sheet(isPresented: $showLoading) {
+                VStack {
+                    Text("Loading…")
+                    ProgressView(value: Double(loadProgress), total: 100)
+                }
+                .padding()
+                .presentationSizing(.form)
+            }
+            .task {
+                await loadData()
+            }
+            .environment(state)
+    }
+
+    func loadData() async {
+        do {
+            showLoading = true
+            loadProgress = 0
+
+            if !instance.hasPrepopulatedRegistry {
+                try await store.client.prepopulateRegistry(
+                    for: instance.ckan, with: self)
+            }
+
+            loadProgress = 50
+
+            try await store.loadModules(
+                for: instance, with: ckanActionDelegate) { progress in
+                    loadProgress = 50 + progress * 50.0
+                }
+
+            state.invalidateSearchResults()
+
+            showLoading = false
+        } catch {
+            logger.error("Loading mod list failed: \(error.localizedDescription)")
+            showLoading = false
+            loadProgress = 0
+            store.ckanError = error
+        }
+    }
+}
+struct ModBrowserTable: View {
+    var instance: GUIInstance
 
     @SceneStorage("ModBrowserShowInspector")
     var showInspector = true
 
+    @Environment(Store.self) private var store
+    @Environment(ModBrowserState.self) private var state
+    @Environment(\.ckanActionDelegate) private var ckanActionDelegate
+
     @SceneStorage("ModBrowserTableConfig")
     private var columnCustomization: TableColumnCustomization<GUIMod>
-
-    @State private var state: ModBrowserState
 
     @FocusState private var tableFocus: Bool
 
     @ViewBuilder
     func table(modules: [GUIMod]) -> some View {
+        @Bindable var state = state
+
         Table(
             modules.sorted(using: state.sortOrder),
             selection: $state.selectedMod,
@@ -57,22 +108,8 @@ struct ModBrowser: View {
             .disabledCustomizationBehavior(.all)
 
             TableColumn("Name", value: \.currentRelease.name) { module in
-                VStack(alignment: .leading) {
-                    Text(module.currentRelease.name)
-                        .id(module.id)
-                    let state = state.changePlan.status(of: module)
-                    Text(String(reflecting: state))
-                    switch state {
-                    case .removing:
-                        Label("Removing", systemImage: "xmark.circle.fill")
-                            .foregroundColor(.red)
-                    case .installed:
-                        Label("Installed", systemImage: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                    default:
-                        EmptyView()
-                    }
-                }
+                ModNameView(module: module)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .width(ideal: 200)
             .customizationID("name")
@@ -117,6 +154,8 @@ struct ModBrowser: View {
     }
 
     var body: some View {
+        @Bindable var state = state
+
         ScrollViewReader { proxy in
             VStack {
                 let searchResults = state.queryModules(state.instance.modules, instance: instance)
@@ -135,14 +174,6 @@ struct ModBrowser: View {
                         showInspector.toggle()
                     }
                 }
-            }
-            .sheet(isPresented: $showLoading) {
-                VStack {
-                    Text("Loading…")
-                    ProgressView(value: Double(loadProgress), total: 100)
-                }
-                .padding()
-                .presentationSizing(.form)
             }
             .inspector(isPresented: $showInspector) {
                 ModInspector().id(state.selectedMod)
@@ -205,9 +236,6 @@ struct ModBrowser: View {
                     }
                 }
             }
-            .task {
-                await loadData()
-            }
             .onAppear {
                 state.scrollProxy = proxy
             }
@@ -228,35 +256,41 @@ struct ModBrowser: View {
             .environment(state)
         }
     }
+}
 
-    func loadData() async {
-        do {
-            showLoading = true
-            loadProgress = 0
+private struct ModNameView: View {
+    var module: GUIMod
 
-            if !instance.hasPrepopulatedRegistry {
-                try await store.client.prepopulateRegistry(
-                    for: instance.ckan, with: self)
-            }
+    @Environment(\.backgroundProminence) private var backgroundProminence
+    @Environment(ModBrowserState.self) private var state
 
-            loadProgress = 50
+    var body: some View {
+        HStack() {
+            Text(module.currentRelease.name)
+                .id(module.id)
 
-            try await store.loadModules(
-                for: instance, with: ckanActionDelegate) { progress in
-                    loadProgress = 50 + progress * 50.0
+            Spacer()
+
+            var color = Color.secondary
+            Group {
+                let state = state.changePlan.status(of: module)
+
+                switch state {
+                case .autoDetected:
+                    Label("Manually Installed", systemSymbol: .personCropCircleBadgeCheckmark)
+                case .removing:
+                    Label("Removing", systemSymbol: .xmarkCircleFill)
+                case .installed:
+                    Label("Installed", systemSymbol: .checkmarkCircleFill)
+                default:
+                    EmptyView()
                 }
-            
-            state.invalidateSearchResults()
-            
-            showLoading = false
-        } catch {
-            logger.error("Loading mod list failed: \(error.localizedDescription)")
-            showLoading = false
-            loadProgress = 0
-            store.ckanError = error
+            }
+            .foregroundColor(backgroundProminence == .increased ? .secondary : color)
         }
     }
 }
+
 
 extension ModBrowser: CkanActionDelegate {
     nonisolated func handleProgress(_ progress: ActionProgress) async throws {
@@ -270,24 +304,13 @@ extension ModBrowser: CkanActionDelegate {
     }
 }
 
-#Preview("Mod Browser") {
-    @Previewable @State var store = Store()
-
-    ErrorAlertView {
-        ModBrowser(instance: GUIInstance.samples.first!)
-    }
-    .frame(width: 800, height: 450)
-    .environment(store)
+#Preview("Mod Browser", traits: .modifier(.sampleData)) {
+    ModBrowserTable(instance: GUIInstance.samples.first!)
+        .frame(width: 800, height: 450)
 
 }
 
-#Preview("Mod Browser (no inspector)") {
-    @Previewable @State var store = Store()
-
-    ErrorAlertView {
-        ModBrowser(instance: GUIInstance.samples.first!, showInspector: false)
-    }
-    .frame(width: 700, height: 450)
-    .environment(store)
-
+#Preview("Mod Browser (no inspector)", traits: .modifier(.sampleData)) {
+    ModBrowserTable(instance: GUIInstance.samples.first!, showInspector: false)
+        .frame(width: 800, height: 450)
 }
