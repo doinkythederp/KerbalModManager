@@ -16,6 +16,20 @@ import IdentifiedCollections
     let instance: GUIInstance
 
     var install: InstalledModule?
+    
+    /// A Boolean value indicating whether the mod was intentionally installed by the user.
+    ///
+    /// Auto-installed or uninstalled mods are not considered intentionally installed.
+    var isUserInstalled: Bool {
+        switch install {
+        case .managed(let install):
+            return !install.wasAutoInstalled
+        case .unmanaged(_):
+            return true
+        case nil:
+            return false
+        }
+    }
 
     /// A property containing the release of the module which is currently installed, if it is known.
     ///

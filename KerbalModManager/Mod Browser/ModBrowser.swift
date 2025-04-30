@@ -72,6 +72,43 @@ struct ModBrowser: View {
         }
     }
 }
+
+struct ModInstalledCheckbox: View {
+    var mod: GUIMod
+    
+    @Environment(ModBrowserState.self) private var state
+    
+    var status: [Bool] {
+        let installed = state.changePlan.isUserInstalled(mod)
+        
+        if mod.canBeUpgraded && state.changePlan.pendingInstallation[mod.id] == nil {
+            return Self.mixed
+        } else if installed {
+            return Self.on
+        } else {
+            return Self.off
+        }
+    }
+    
+    var source: Binding<[Bool]> {
+        Binding(
+            get: { status },
+            set: { value in state.changePlan.set(mod, installed: value[0]) }
+        )
+    }
+    
+    var body: some View {
+        Toggle("Installed", sources: source, isOn: \.self)
+            .disabled(mod.currentRelease.kind == .dlc)
+            .toggleStyle(.checkbox)
+            .labelsHidden()
+    }
+    
+    static let on = [true, true]
+    static let mixed = [true, false]
+    static let off  = [false, false]
+}
+
 struct ModBrowserTable: View {
     var instance: GUIInstance
 
@@ -100,12 +137,7 @@ struct ModBrowserTable: View {
             let downloadIcon = Image(systemSymbol: .arrowDownCircle)
 
             TableColumn("\(downloadIcon)") { mod in
-                let status = state.changePlan.status(of: mod)
-
-                Toggle("Installed", isOn: .constant(status == .installed))
-                    .disabled(mod.currentRelease.kind == .dlc)
-                    .toggleStyle(.checkbox)
-                    .labelsHidden()
+                ModInstalledCheckbox(mod: mod).environment(state)
             }
             .width(26)
             .defaultVisibility(.visible)
@@ -117,6 +149,7 @@ struct ModBrowserTable: View {
                 let status = state.changePlan.status(of: mod)
                 ModNameView(name: mod.currentRelease.name, status: status)
                     .fixedSize(horizontal: false, vertical: true)
+                    .environment(state)
             }
             .width(ideal: 200)
             .customizationID("name")
@@ -293,8 +326,10 @@ struct ModBrowserTable: View {
 private struct ModNameView: View {
     var name: String
     var status: ModuleChangePlan.Status
+    var mod: GUIMod?
 
     @Environment(\.backgroundProminence) private var backgroundProminence
+    @Environment(ModBrowserState.self) private var state
 
     var body: some View {
         let detailsShown = status != .notInstalled
@@ -303,12 +338,16 @@ private struct ModNameView: View {
             Text(name).truncationMode(.tail)
 
             if detailsShown {
-                let color =
+                let color: Color =
                     switch status {
-                    case .installed, .autoDetected, .autoInstalled:
-                        Color.green
+                    case .installed, .installing, .autoDetected:
+                        .green
+                    case .upgrading, .upgradable, .replaceable, .replacing:
+                        .orange
+                    case .removing:
+                            .red
                     default:
-                        Color.secondary
+                        .secondary
                     }
 
                 let bold =
@@ -321,15 +360,29 @@ private struct ModNameView: View {
                     default: false
                     }
 
-                Label {
-                    Text(status.localizedStringResource)
-                } icon: {
-                    Image(systemSymbol: status.symbol)
+                HStack {
+                    Label {
+                        Text(status.localizedStringResource)
+                    } icon: {
+                        Image(systemSymbol: status.symbol)
+                    }
+                    .bold(bold)
+                    .foregroundColor(
+                        backgroundProminence == .increased ? .secondary : color
+                    )
+                    
+                    switch status {
+                    case .upgrading, .removing, .installing, .replacing:
+                        Button("Cancel") {
+                            if let mod {
+                                state.changePlan.cancelChanges(to: mod.id)
+                            }
+                        }
+                        .controlSize(.small)
+                    default:
+                        EmptyView()
+                    }
                 }
-                .bold(bold)
-                .foregroundColor(
-                    backgroundProminence == .increased ? .secondary : color
-                )
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
@@ -363,7 +416,7 @@ extension ModBrowser: CkanActionDelegate {
         .frame(width: 800, height: 450)
 }
 
-#Preview("Mod Labels") {
+#Preview("Mod Labels", traits: .modifier(.sampleData)) {
     @Previewable @State var toggleableStatus = ModuleChangePlan.Status.notInstalled
 
     List {

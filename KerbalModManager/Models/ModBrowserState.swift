@@ -153,6 +153,24 @@ struct ModuleChangePlan: Equatable {
     private(set) var pendingRemoval = Set<ModuleId>()
     /// A set of modules whos replacements will be installed after the plan is executed.
     private(set) var pendingReplacement = Set<ModuleId>()
+    
+    /// Set the specified mod to either be installed or uninstalled
+    mutating func set(_ mod: GUIMod, installed: Bool) {
+        assert(mod.currentRelease.kind != .dlc, "Cannot install or remove DLCs")
+        
+        if mod.isUserInstalled {
+            setRemoved(!installed, for: mod.id)
+        } else {
+            let release = installed ? mod.currentRelease.id : nil
+            setPendingRelease(release, for: mod.id)
+        }
+    }
+    
+    mutating func cancelChanges(to mod: ModuleId) {
+        pendingInstallation[mod] = nil
+        pendingRemoval.remove(mod)
+        pendingReplacement.remove(mod)
+    }
 
     /// Plan or cancel the installation of a module.
     mutating func setPendingRelease(_ release: ReleaseId?, for module: ModuleId)
@@ -189,6 +207,19 @@ struct ModuleChangePlan: Equatable {
             && pendingRemoval.isEmpty
             && pendingReplacement.isEmpty
     }
+    
+    /// Returns a Boolean value indicating whether the specified mod will be intentionally installed by the user after this plan is executed.
+    func isUserInstalled(_ mod: GUIMod) -> Bool {
+        if pendingInstallation[mod.id] != nil {
+            return true
+        }
+        
+        if pendingRemoval.contains(mod.id) {
+            return false
+        }
+        
+        return mod.isUserInstalled
+    }
 
     /// Returns the current status of the given mod in the context of this change plan.
     ///
@@ -207,7 +238,9 @@ struct ModuleChangePlan: Equatable {
                 }
             }
 
-            guard case .managed(let install) = install else {
+            guard case .managed(let install) = install,
+                mod.currentRelease.kind != .dlc
+            else {
                 return .autoDetected
             }
 
