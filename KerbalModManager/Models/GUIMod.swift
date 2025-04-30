@@ -32,7 +32,7 @@ import IdentifiedCollections
 
     /// The most appropriate release of the mod to show to the user.
     ///
-    /// If the mod is installed, it will use the installed release; compatible, the latest compatible release.
+    /// If the mod is installed, it will use the installed release; if it is compatible, the latest compatible release.
     /// Otherwise, it will use the latest release.
     var currentRelease: CkanModule.Release
     var isCompatible = false

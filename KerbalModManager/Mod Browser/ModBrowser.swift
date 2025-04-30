@@ -55,15 +55,17 @@ struct ModBrowser: View {
             loadProgress = 50
 
             try await store.loadModules(
-                for: instance, with: ckanActionDelegate) { progress in
-                    loadProgress = 50 + progress * 50.0
-                }
+                for: instance, with: ckanActionDelegate
+            ) { progress in
+                loadProgress = 50 + progress * 50.0
+            }
 
             state.invalidateSearchResults()
 
             showLoading = false
         } catch {
-            logger.error("Loading mod list failed: \(error.localizedDescription)")
+            logger.error(
+                "Loading mod list failed: \(error.localizedDescription)")
             showLoading = false
             loadProgress = 0
             store.ckanError = error
@@ -96,8 +98,11 @@ struct ModBrowserTable: View {
             columnCustomization: $columnCustomization
         ) {
             let downloadIcon = Image(systemSymbol: .arrowDownCircle)
+
             TableColumn("\(downloadIcon)") { module in
-                Toggle("Installed", isOn: .constant(false))
+                let status = state.changePlan.status(of: module)
+
+                Toggle("Installed", isOn: .constant(status == .installed))
                     .toggleStyle(.checkbox)
                     .labelsHidden()
             }
@@ -107,42 +112,54 @@ struct ModBrowserTable: View {
             .customizationID("installed")
             .disabledCustomizationBehavior(.all)
 
-            TableColumn("Name", value: \.currentRelease.name) { module in
-                ModNameView(module: module)
+            TableColumn("Name", value: \.currentRelease.name) { mod in
+                let status = state.changePlan.status(of: mod)
+                ModNameView(name: mod.currentRelease.name, status: status)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .width(ideal: 200)
             .customizationID("name")
             .disabledCustomizationBehavior(.visibility)
 
-            TableColumn("Author", value: \.currentRelease.authorsDescription) { module in
+            TableColumn("Author", value: \.currentRelease.authorsDescription) {
+                module in
                 Text(module.currentRelease.authorsDescription)
             }
             .width(min: 100, ideal: 100, max: 200)
             .customizationID("author")
 
-            TableColumn("Downloads", sortUsing: KeyPathComparator(\.currentRelease.downloadCount)) {
+            TableColumn(
+                "Downloads",
+                sortUsing: KeyPathComparator(\.currentRelease.downloadCount)
+            ) {
                 module in
                 Text(module.currentRelease.downloadCount.formatted())
             }
             .width(70)
             .customizationID("downloadCount")
 
-            TableColumn("Max KSP", sortUsing: KeyPathComparator(\.currentRelease.kspVersionMax)) {
+            TableColumn(
+                "Max KSP",
+                sortUsing: KeyPathComparator(\.currentRelease.kspVersionMax)
+            ) {
                 module in
                 Text(module.currentRelease.kspVersionMaxDescription)
             }
             .width(70)
             .customizationID("maxVersion")
 
-            TableColumn("Size", sortUsing: KeyPathComparator(\.currentRelease.downloadSizeBytes)) {
+            TableColumn(
+                "Size",
+                sortUsing: KeyPathComparator(\.currentRelease.downloadSizeBytes)
+            ) {
                 module in
                 Text(module.currentRelease.downloadSizeBytesDescription)
             }
             .width(70)
             .customizationID("downloadSize")
 
-            TableColumn("Description", value: \.currentRelease.abstract) { module in
+            TableColumn("Description", value: \.currentRelease.abstract) {
+                module in
                 Text(module.currentRelease.abstract)
             }
             .width(ideal: 300)
@@ -158,7 +175,8 @@ struct ModBrowserTable: View {
 
         ScrollViewReader { proxy in
             VStack {
-                let searchResults = state.queryModules(state.instance.modules, instance: instance)
+                let searchResults = state.queryModules(
+                    state.instance.modules, instance: instance)
 
                 table(modules: searchResults.elements)
             }
@@ -196,41 +214,52 @@ struct ModBrowserTable: View {
                 if !text.isEmpty {
                     Section("Details") {
                         Text("Name Contains \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .name,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .name,
+                                    searchTerm: state.search.text))
                         Text("Description Contains \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .abstract,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .abstract,
+                                    searchTerm: state.search.text))
                         Text("Author Contains \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .author,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .author,
+                                    searchTerm: state.search.text))
                         Text("Has Tag \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .tags,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .tags,
+                                    searchTerm: state.search.text))
                     }
                     Section("Relationships") {
                         Text("Depends on \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .depends,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .depends,
+                                    searchTerm: state.search.text))
                         Text("Recommends \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .recommends,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .recommends,
+                                    searchTerm: state.search.text))
                         Text("Suggests \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .suggests,
-                                searchTerm: state.search.text))
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .suggests,
+                                    searchTerm: state.search.text))
                         Text("Conflicts with \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
-                                category: .conflicts,
-                                searchTerm: state.search.text))
-                        Text("Satisfies Dependencies for \"\(state.search.text)\"")
-                            .searchCompletion(ModSearchToken(
+                            .searchCompletion(
+                                ModSearchToken(
+                                    category: .conflicts,
+                                    searchTerm: state.search.text))
+                        Text(
+                            "Satisfies Dependencies for \"\(state.search.text)\""
+                        )
+                        .searchCompletion(
+                            ModSearchToken(
                                 category: .provides,
                                 searchTerm: state.search.text))
                     }
@@ -259,38 +288,53 @@ struct ModBrowserTable: View {
 }
 
 private struct ModNameView: View {
-    var module: GUIMod
+    var name: String
+    var status: ModuleChangePlan.Status
 
     @Environment(\.backgroundProminence) private var backgroundProminence
-    @Environment(ModBrowserState.self) private var state
 
     var body: some View {
-        HStack() {
-            Text(module.currentRelease.name)
-                .id(module.id)
+        VStack(alignment: .leading, spacing: 3) {
+            Text(name).truncationMode(.tail)
 
-            Spacer()
-
-            var color = Color.secondary
-            Group {
-                let state = state.changePlan.status(of: module)
-
-                switch state {
-                case .autoDetected:
-                    Label("Manually Installed", systemSymbol: .personCropCircleBadgeCheckmark)
-                case .removing:
-                    Label("Removing", systemSymbol: .xmarkCircleFill)
-                case .installed:
-                    Label("Installed", systemSymbol: .checkmarkCircleFill)
+            let color =
+                switch status {
+                case .installed, .autoDetected, .autoInstalled:
+                    Color.green
                 default:
-                    EmptyView()
+                    Color.secondary
                 }
+
+            let bold =
+                switch status {
+                case .removing,
+                    .upgrading,
+                    .replacing,
+                    .installing:
+                    true
+                default: false
+                }
+
+            
+            if status != .notInstalled {
+                Label {
+                    Text(status.localizedStringResource)
+                } icon: {
+                    Image(systemSymbol: status.symbol)
+                }
+                .bold(bold)
+                .foregroundColor(
+                    backgroundProminence == .increased ? .secondary : color
+                )
+                .transition(.move(edge: .leading).combined(with: .opacity))
             }
-            .foregroundColor(backgroundProminence == .increased ? .secondary : color)
         }
+        .lineLimit(1)
+        .frame(height: 35)
+        .opacity(status == .unavailable ? 0.5 : 1)
+        .animation(.bouncy, value: status)
     }
 }
-
 
 extension ModBrowser: CkanActionDelegate {
     nonisolated func handleProgress(_ progress: ActionProgress) async throws {
@@ -313,4 +357,42 @@ extension ModBrowser: CkanActionDelegate {
 #Preview("Mod Browser (no inspector)", traits: .modifier(.sampleData)) {
     ModBrowserTable(instance: GUIInstance.samples.first!, showInspector: false)
         .frame(width: 800, height: 450)
+}
+
+#Preview("Mod Labels") {
+    @Previewable @State var toggleableStatus = ModuleChangePlan.Status.notInstalled
+
+    List {
+        ModNameView(name: "Astrogator", status: .removing)
+        ModNameView(name: "[x] Science! Continued", status: .upgrading)
+        ModNameView(name: "KSP Community Fixes", status: .upgradable)
+        ModNameView(name: "Double Tap Brakes", status: .autoDetected)
+        ModNameView(name: "[x] Science!", status: .replacing)
+        ModNameView(name: "Kemini Research Program", status: .replaceable)
+        ModNameView(name: "Docking Port Alignment Indicator", status: .unavailable)
+        ModNameView(name: "Module Manager", status: .autoInstalled)
+        ModNameView(name: "Parallax", status: .installed)
+        ModNameView(name: "Scatterer", status: .installing)
+        ModNameView(name: "B9 Part Switch", status: toggleableStatus)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay {
+                HStack {
+                    Spacer()
+                    Button("Toggle") {
+                        if toggleableStatus == .notInstalled {
+                            toggleableStatus = .installing
+                        } else if toggleableStatus == .installing {
+                            toggleableStatus = .installed
+                        } else {
+                            toggleableStatus = .notInstalled
+                        }
+                    }
+                }
+            }
+
+    }
+    .listStyle(.inset)
+    .alternatingRowBackgrounds()
+    .frame(width: 230, height: 500)
+    .background()
 }

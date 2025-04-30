@@ -9,6 +9,7 @@ import CkanAPI
 import Collections
 import Foundation
 import IdentifiedCollections
+import SFSafeSymbols
 import SwiftUI
 
 /// Tracks the state of a mod browser for a certain instance.
@@ -36,7 +37,7 @@ import SwiftUI
     /// Prefer using ``ModBrowserState/reveal(module:)`` instead of setting this directly, because it
     /// also handles clearing the search box and updating the selected mod.
     var modulePendingReveal: ModuleId?
-    
+
     var changePlan = ModuleChangePlan()
 
     /// Filter the given modules to only include results that satisfy the current search query.
@@ -217,19 +218,21 @@ struct ModuleChangePlan: Equatable {
             if mod.installedRelease?.replacedBy != nil {
                 return .replaceable
             }
-            
+
             // At the time of writing, there's not actually a way to represent this because ``GUIMod.currentRelease`` is non-nillable
-            if !mod.module.containsRelease(stableEnoughFor: mod.instance.ckan.compatabilityOptions) {
+            if !mod.module.containsRelease(
+                stableEnoughFor: mod.instance.ckan.compatabilityOptions)
+            {
                 return .unavailable
             }
-            
+
             if install.wasAutoInstalled {
                 return .autoInstalled
             }
-            
+
             return .installed
         }
-        
+
         if pendingInstallation[mod.id] != nil {
             return .installing
         }
@@ -238,7 +241,7 @@ struct ModuleChangePlan: Equatable {
     }
 
     /// The status of a mod in the context of a change plan
-    enum Status {
+    enum Status: CustomLocalizedStringResourceConvertible {
         case removing
         case upgrading
         case upgradable
@@ -250,5 +253,49 @@ struct ModuleChangePlan: Equatable {
         case installed
         case installing
         case notInstalled
+
+        var localizedStringResource: LocalizedStringResource {
+            return switch self {
+            case .removing: "Removal Pending"
+            case .upgrading: "Upgrade Pending"
+            case .upgradable: "Upgradable"
+            case .autoDetected: "Manually Installed"
+            case .replacing: "Replacement Pending"
+            case .replaceable: "Replacement Available"
+            case .unavailable: "Installed (No Versions Available)"
+            case .autoInstalled: "Auto-Installed"
+            case .installed: "Installed"
+            case .installing: "Install Pending"
+            case .notInstalled: "Not Installed"
+            }
+        }
+
+        var symbol: SFSymbol {
+            return switch self {
+            case .removing:
+                .xmarkCircle
+
+            case .upgrading, .upgradable:
+                .arrowUpCircle
+
+            case .autoDetected:
+                .personCropCircleBadgeCheckmark
+
+            case .replacing, .replaceable:
+                .arrowTrianglehead2Clockwise
+
+            case .unavailable:
+                .checkmarkCircleBadgeQuestionmark
+
+            case .autoInstalled:
+                .checkmarkCircle
+
+            case .installing, .installed:
+                .checkmarkCircleFill
+
+            case .notInstalled:
+                .circleDashed
+            }
+        }
     }
 }
