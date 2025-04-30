@@ -99,10 +99,11 @@ struct ModBrowserTable: View {
         ) {
             let downloadIcon = Image(systemSymbol: .arrowDownCircle)
 
-            TableColumn("\(downloadIcon)") { module in
-                let status = state.changePlan.status(of: module)
+            TableColumn("\(downloadIcon)") { mod in
+                let status = state.changePlan.status(of: mod)
 
                 Toggle("Installed", isOn: .constant(status == .installed))
+                    .disabled(mod.currentRelease.kind == .dlc)
                     .toggleStyle(.checkbox)
                     .labelsHidden()
             }
@@ -124,6 +125,7 @@ struct ModBrowserTable: View {
             TableColumn("Author", value: \.currentRelease.authorsDescription) {
                 module in
                 Text(module.currentRelease.authorsDescription)
+                    .lineLimit(2)
             }
             .width(min: 100, ideal: 100, max: 200)
             .customizationID("author")
@@ -161,6 +163,7 @@ struct ModBrowserTable: View {
             TableColumn("Description", value: \.currentRelease.abstract) {
                 module in
                 Text(module.currentRelease.abstract)
+                    .lineLimit(2)
             }
             .width(ideal: 300)
             .customizationID("abstract")
@@ -294,29 +297,30 @@ private struct ModNameView: View {
     @Environment(\.backgroundProminence) private var backgroundProminence
 
     var body: some View {
+        let detailsShown = status != .notInstalled
+
         VStack(alignment: .leading, spacing: 3) {
             Text(name).truncationMode(.tail)
 
-            let color =
-                switch status {
-                case .installed, .autoDetected, .autoInstalled:
-                    Color.green
-                default:
-                    Color.secondary
-                }
+            if detailsShown {
+                let color =
+                    switch status {
+                    case .installed, .autoDetected, .autoInstalled:
+                        Color.green
+                    default:
+                        Color.secondary
+                    }
 
-            let bold =
-                switch status {
-                case .removing,
-                    .upgrading,
-                    .replacing,
-                    .installing:
-                    true
-                default: false
-                }
+                let bold =
+                    switch status {
+                    case .removing,
+                        .upgrading,
+                        .replacing,
+                        .installing:
+                        true
+                    default: false
+                    }
 
-            
-            if status != .notInstalled {
                 Label {
                     Text(status.localizedStringResource)
                 } icon: {
@@ -329,7 +333,7 @@ private struct ModNameView: View {
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
-        .lineLimit(1)
+        .lineLimit(detailsShown ? 1 : 2)
         .frame(height: 35)
         .opacity(status == .unavailable ? 0.5 : 1)
         .animation(.bouncy, value: status)
