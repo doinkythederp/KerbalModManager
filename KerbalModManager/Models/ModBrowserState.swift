@@ -155,13 +155,20 @@ struct ModuleChangePlan: Equatable {
     private(set) var pendingReplacement = Set<ModuleId>()
     
     /// Set the specified mod to either be installed or uninstalled
-    mutating func set(_ mod: GUIMod, installed: Bool) {
+    ///
+    /// - Parameters:
+    ///   - mod: The mod whose install state will be modified
+    ///   - installed: Indicates whether the mod will be installed after this change plan is applied
+    ///   - release: Specifies which release of the mod will be used
+    mutating func set(_ mod: GUIMod, installed: Bool, release releaseOverride: ReleaseId? = nil) {
         assert(mod.currentRelease.kind != .dlc, "Cannot install or remove DLCs")
-        
-        if mod.isUserInstalled {
+
+        let alreadyInstalled = mod.isUserInstalled(release: releaseOverride)
+
+        if alreadyInstalled {
             setRemoved(!installed, for: mod.id)
         } else {
-            let release = installed ? mod.currentRelease.id : nil
+            let release = installed ? (releaseOverride ?? mod.currentRelease.id) : nil
             setPendingRelease(release, for: mod.id)
         }
     }
@@ -181,8 +188,8 @@ struct ModuleChangePlan: Equatable {
 
     /// Plan or cancel the removal of a module.
     mutating func setRemoved(_ removed: Bool, for module: ModuleId) {
-        pendingInstallation[module] = nil
         if removed {
+            pendingInstallation[module] = nil
             pendingRemoval.insert(module)
         } else {
             pendingRemoval.remove(module)
@@ -191,10 +198,9 @@ struct ModuleChangePlan: Equatable {
 
     /// Plan or cancel the replacement of a module.
     mutating func setReplaced(_ replaced: Bool, for module: ModuleId) {
-        pendingRemoval.remove(module)
-        pendingInstallation[module] = nil
-
         if replaced {
+            pendingRemoval.remove(module)
+            pendingInstallation[module] = nil
             pendingReplacement.insert(module)
         } else {
             pendingReplacement.remove(module)
@@ -219,6 +225,24 @@ struct ModuleChangePlan: Equatable {
         }
         
         return mod.isUserInstalled
+    }
+
+    /// Returns a Boolean value indicating whether a certain release of the specified mod will be intentionally
+    /// installed by the user after this plan is executed.
+    func isUserInstalled(_ mod: GUIMod, release: ReleaseId?) -> Bool {
+        guard let release else {
+            return isUserInstalled(mod)
+        }
+
+        if let pending = pendingInstallation[mod.id] {
+            return pending == release
+        }
+
+        if pendingRemoval.contains(mod.id) {
+            return false
+        }
+
+        return mod.isUserInstalled(release: release)
     }
 
     /// Returns the current status of the given mod in the context of this change plan.

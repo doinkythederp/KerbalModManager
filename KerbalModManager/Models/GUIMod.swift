@@ -31,6 +31,18 @@ import IdentifiedCollections
         }
     }
 
+    func isUserInstalled(release: ReleaseId?) -> Bool {
+        guard let release else {
+            return isUserInstalled
+        }
+
+        if case .managed(let managedInstall) = install {
+            return !managedInstall.wasAutoInstalled && managedInstall.release == release
+        }
+
+        return false
+    }
+
     /// A property containing the release of the module which is currently installed, if it is known.
     ///
     /// Sometimes a module might be installed without there being a known release (for example, this
@@ -42,6 +54,10 @@ import IdentifiedCollections
         }
         
         return release
+    }
+
+    var isReadOnly: Bool {
+        currentRelease.kind == .dlc
     }
 
     /// The most appropriate release of the mod to show to the user.

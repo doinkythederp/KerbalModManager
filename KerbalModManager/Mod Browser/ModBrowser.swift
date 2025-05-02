@@ -75,38 +75,22 @@ struct ModBrowser: View {
 
 struct ModInstalledCheckbox: View {
     var mod: GUIMod
-    
+
     @Environment(ModBrowserState.self) private var state
-    
-    var status: [Bool] {
-        let installed = state.changePlan.isUserInstalled(mod)
-        
-        if mod.canBeUpgraded && state.changePlan.pendingInstallation[mod.id] == nil {
-            return Self.mixed
-        } else if installed {
-            return Self.on
-        } else {
-            return Self.off
-        }
-    }
-    
-    var source: Binding<[Bool]> {
+
+    var source: Binding<Bool> {
         Binding(
-            get: { status },
-            set: { value in state.changePlan.set(mod, installed: value[0]) }
+            get: { state.changePlan.isUserInstalled(mod) },
+            set: { value in state.changePlan.set(mod, installed: value) }
         )
     }
-    
+
     var body: some View {
-        Toggle("Installed", sources: source, isOn: \.self)
-            .disabled(mod.currentRelease.kind == .dlc)
+        Toggle("Installed", isOn: source)
+            .disabled(mod.isReadOnly)
             .toggleStyle(.checkbox)
             .labelsHidden()
     }
-    
-    static let on = [true, true]
-    static let mixed = [true, false]
-    static let off  = [false, false]
 }
 
 struct ModBrowserTable: View {
@@ -331,68 +315,85 @@ private struct ModNameView: View {
     var status: ModuleChangePlan.Status
     var mod: GUIMod?
 
-    @Environment(\.backgroundProminence) private var backgroundProminence
-    @Environment(ModBrowserState.self) private var state
-
     var body: some View {
         let detailsShown = status != .notInstalled
 
         VStack(alignment: .leading, spacing: 3) {
-            Text(name).truncationMode(.tail)
+            Text(name)
+                .truncationMode(.tail)
 
-            if detailsShown {
-                let color: Color =
-                    switch status {
-                    case .installed, .installing, .autoDetected:
-                        .green
-                    case .upgrading, .upgradable, .replaceable, .replacing:
-                        .orange
-                    case .removing:
-                            .red
-                    default:
-                        .secondary
-                    }
-
-                let bold =
-                    switch status {
-                    case .removing,
-                        .upgrading,
-                        .replacing,
-                        .installing:
-                        true
-                    default: false
-                    }
-
-                HStack {
-                    Label {
-                        Text(status.localizedStringResource)
-                    } icon: {
-                        Image(systemSymbol: status.symbol)
-                    }
-                    .bold(bold)
-                    .foregroundColor(
-                        backgroundProminence == .increased ? .secondary : color
-                    )
-                    
-                    switch status {
-                    case .upgrading, .replacing:
-                        Button("Cancel") {
-                            if let mod {
-                                state.changePlan.cancelChanges(to: mod.id)
-                            }
-                        }
-                        .controlSize(.small)
-                    default:
-                        EmptyView()
-                    }
+            Group {
+                if detailsShown {
+                    ModStatusLabel(status: status, mod: mod)
                 }
-                .transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
-        .lineLimit(detailsShown ? 1 : 2)
         .frame(height: 35)
         .opacity(status == .unavailable ? 0.5 : 1)
-        .animation(.bouncy, value: status)
+        .lineLimit(detailsShown ? 1 : 2)
+        .animation(.snappy, value: status)
+    }
+}
+
+struct ModStatusLabel: View {
+    var status: ModuleChangePlan.Status
+    var mod: GUIMod?
+
+    init(status: ModuleChangePlan.Status, mod: GUIMod? = nil) {
+        self.status = status
+        self.mod = mod
+    }
+
+    @Environment(\.backgroundProminence) private var backgroundProminence
+    @Environment(ModBrowserState.self) private var state
+
+    var body: some View {
+        let color: Color =
+            switch status {
+            case .installed, .installing, .autoDetected:
+                .green
+            case .upgrading, .upgradable, .replaceable, .replacing:
+                .orange
+            case .removing:
+                .red
+            default:
+                .secondary
+            }
+
+        let bold =
+            switch status {
+            case .removing,
+                .upgrading,
+                .replacing,
+                .installing:
+                true
+            default: false
+            }
+
+        HStack {
+            Label {
+                Text(status.localizedStringResource)
+            } icon: {
+                Image(systemSymbol: status.symbol)
+            }
+            .bold(bold)
+            .foregroundColor(
+                backgroundProminence == .increased ? .secondary : color
+            )
+
+            if let mod {
+                switch status {
+                case .upgrading, .replacing:
+                    Button("Cancel") {
+                        state.changePlan.cancelChanges(to: mod.id)
+                    }
+                    .controlSize(.small)
+                default:
+                    EmptyView()
+                }
+            }
+        }
+        .transition(.move(edge: .leading).combined(with: .opacity))
     }
 }
 
@@ -420,7 +421,8 @@ extension ModBrowser: CkanActionDelegate {
 }
 
 #Preview("Mod Labels", traits: .modifier(.sampleData)) {
-    @Previewable @State var toggleableStatus = ModuleChangePlan.Status.notInstalled
+    @Previewable @State var toggleableStatus = ModuleChangePlan.Status
+        .notInstalled
 
     List {
         ModNameView(name: "Astrogator", status: .removing)
@@ -429,7 +431,8 @@ extension ModBrowser: CkanActionDelegate {
         ModNameView(name: "Double Tap Brakes", status: .autoDetected)
         ModNameView(name: "[x] Science!", status: .replacing)
         ModNameView(name: "Kemini Research Program", status: .replaceable)
-        ModNameView(name: "Docking Port Alignment Indicator", status: .unavailable)
+        ModNameView(
+            name: "Docking Port Alignment Indicator", status: .unavailable)
         ModNameView(name: "Module Manager", status: .autoInstalled)
         ModNameView(name: "Parallax", status: .installed)
         ModNameView(name: "Scatterer", status: .installing)

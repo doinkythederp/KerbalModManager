@@ -12,14 +12,15 @@ struct ModVersionsView: View {
     var mod: GUIMod
     @Binding var releaseOverride: CkanModule.Release?
 
+    @Environment(ModBrowserState.self) private var state
+
     var body: some View {
         let currentRelease = releaseOverride ?? mod.currentRelease
 
         VStack {
             ForEach(mod.module.releases) { release in
                 let isViewing = currentRelease.id == release.id
-                let isInstalled =
-                    mod.install?.version == release.version.value
+                let displayedStatus = displayedStatus(for: release.id)
 
                 GroupBox {
                     VStack(alignment: .leading) {
@@ -35,25 +36,15 @@ struct ModVersionsView: View {
                                 .labelStyle(.iconOnly)
                                 .disabled(currentRelease.id == release.id)
 
-                                Button(
-                                    isInstalled
-                                        ? "Uninstall" : "Install"
-                                ) {
-                                    // TODO
-                                }
+                                ModInstallButton(mod: mod, release: release.id)
                             }
                             .controlSize(.small)
                         }
 
-                        if isViewing || isInstalled {
+                        if isViewing || displayedStatus != .notInstalled {
                             HStack {
-                                if isInstalled {
-                                    Label(
-                                        "Installed",
-                                        systemSymbol:
-                                            .checkmarkCircle
-                                    )
-                                    .foregroundStyle(.green)
+                                if displayedStatus != .notInstalled {
+                                    ModStatusLabel(status: displayedStatus)
                                 }
 
                                 if isViewing {
@@ -69,6 +60,28 @@ struct ModVersionsView: View {
                 }
             }
         }
+    }
+
+    func displayedStatus(for releaseId: ReleaseId) -> ModuleChangePlan.Status {
+        let isInstalledNow = mod.installedRelease?.id == releaseId
+        let willBeInstalled = state.changePlan.isUserInstalled(mod, release: releaseId)
+
+        let displayedStatus: ModuleChangePlan.Status
+        if isInstalledNow {
+            if willBeInstalled {
+                displayedStatus = .installed
+            } else {
+                displayedStatus = .removing
+            }
+        } else {
+            if willBeInstalled {
+                displayedStatus = .installing
+            } else {
+                displayedStatus = .notInstalled
+            }
+        }
+
+        return displayedStatus
     }
 }
 

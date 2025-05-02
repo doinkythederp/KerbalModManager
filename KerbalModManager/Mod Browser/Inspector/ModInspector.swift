@@ -144,7 +144,7 @@ struct ModInspector: View {
                     HStack {
                         DownloadSizeIndicator(module: current)
                         Spacer()
-                        Button("Install") {}
+                        ModInstallButton(mod: module, release: releaseOverride?.id)
                     }
                     .padding()
                     .background()
@@ -166,7 +166,7 @@ private struct DownloadSizeIndicator: View {
 
     var body: some View {
         if module.downloadSizeBytes + module.installSizeBytes > 0 {
-            HStack(spacing: 5) {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Image(systemSymbol: .arrowDownCircle)
                 WrappingHStack(
                     alignment: .leading,
@@ -196,6 +196,27 @@ private struct DownloadSizeIndicator: View {
                 .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+struct ModInstallButton: View {
+    var mod: GUIMod
+    var release: ReleaseId?
+
+    @Environment(ModBrowserState.self) private var state
+
+    var isInstalled: Bool {
+        state.changePlan.isUserInstalled(mod, release: release)
+    }
+
+    var body: some View {
+        Button {
+            state.changePlan.set(mod, installed: !isInstalled, release: release)
+        } label: {
+            Text(isInstalled ? "Remove": "Install")
+                .frame(minWidth: 50)
+        }
+        .disabled(mod.isReadOnly)
     }
 }
 
