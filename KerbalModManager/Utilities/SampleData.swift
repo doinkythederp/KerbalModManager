@@ -7,8 +7,8 @@
 
 import CkanAPI
 import Foundation
-import System
 import SwiftUI
+import System
 
 extension GameInstance {
     @MainActor
@@ -54,7 +54,8 @@ extension CkanModule {
                     depends: [
                         Release.Relationship(direct: "Kopernicus"),
                         Release.Relationship(direct: "Parallax-Textures"),
-                        Release.Relationship(anyOf: ["RealSolarSystem", "JNSQ"]),  // not real, just for visualizing anyOf relationships
+                        Release.Relationship(anyOf: ["RealSolarSystem", "JNSQ"]
+                        ),  // not real, just for visualizing anyOf relationships
                     ],
                     recommends: [
                         Release.Relationship(direct: "Scatterer")
@@ -72,7 +73,8 @@ extension CkanModule {
                     id: "Parallax",
                     name: "Parallax",
                     version: .init("1.0.0"),
-                    abstract: "A PBR terrain shader for planet surfaces (The old version)",
+                    abstract:
+                        "A PBR terrain shader for planet surfaces (The old version)",
                     authors: ["Gameslinx"],
                     licenses: ["CC-BY-NC-ND-4.0"],
                     resources: Release.Resources(
@@ -86,7 +88,8 @@ extension CkanModule {
                     depends: [
                         Release.Relationship(direct: "Kopernicus"),
                         Release.Relationship(direct: "Parallax-Textures"),
-                        Release.Relationship(anyOf: ["RealSolarSystem", "JNSQ"]),
+                        Release.Relationship(anyOf: ["RealSolarSystem", "JNSQ"]
+                        ),
                     ],
                     recommends: [
                         Release.Relationship(direct: "Scatterer")
@@ -99,19 +102,38 @@ extension CkanModule {
                     ],
                     downloadSizeBytes: 445977,
                     downloadCount: 1_568_030
+                ),
+            ]),
+        CkanModule(
+            id: "ModuleManager",
+            releases: [
+                CkanModule.Release(
+                    id: "ModuleManager",
+                    name: "Module Manager",
+                    version: .init("1.0.0"),
+                    abstract: "Modify KSP configs without conflict",
+                    authors: ["ialdabaoth", "sarbian", "Blowfish"],
+                    resources: .init(),
+                    releaseDate: .now,
+                    downloadSizeBytes: 445977,
+                    downloadCount: 1560
                 )
-            ])
+            ]),
 
     ]
 }
 
 extension GUIMod {
     @MainActor
-    static let samples = CkanModule.samples.map { module in
+    static let samples = CkanModule.samples.enumerated().map {
+        (offset, module) in
         GUIMod(
             module: module,
             instance: GUIInstance.samples.first!,
-            install: .managed(.init(release: module.releases.first!.id, date: .now))
+            install: offset == 0
+                ? .managed(
+                    .init(release: module.releases.first!.id, date: .now))
+                : nil
         )
     }
 }
@@ -136,6 +158,9 @@ struct SampleData: PreviewModifier {
         let state = ModBrowserState(instance: store.instances.first!)
 
         state.selectedMod = GUIMod.samples.first!.id
+        
+        let installingMod = state.instance.modules[id: "ModuleManager"]!
+        state.changePlan.set(installingMod, installed: true)
 
         return Context(store: store, state: state)
     }

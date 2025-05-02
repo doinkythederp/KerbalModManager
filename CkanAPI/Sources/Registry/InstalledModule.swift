@@ -31,10 +31,10 @@ public struct ManagedInstalledModule: Sendable, Equatable {
 ///
 /// Cannot be uninstalled.
 public struct UnmanagedInstalledModule: Sendable, Equatable {
-    public var version: String?
+    public var release: ReleaseId?
 
-    internal init(version: String? = nil) {
-        self.version = version
+    public init(release: ReleaseId? = nil) {
+        self.release = release
     }
 }
 
@@ -42,12 +42,12 @@ public enum InstalledModule: Sendable, Equatable {
     case managed(ManagedInstalledModule)
     case unmanaged(UnmanagedInstalledModule)
 
-    public var version: String? {
+    public var release: ReleaseId? {
         switch self {
         case .managed(let managed):
-            managed.release.version
+            managed.release
         case .unmanaged(let unmanaged):
-            unmanaged.version
+            unmanaged.release
         }
     }
 }

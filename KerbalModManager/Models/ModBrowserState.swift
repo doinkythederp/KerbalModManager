@@ -154,6 +154,10 @@ struct ModuleChangePlan: Equatable {
     /// A set of modules whos replacements will be installed after the plan is executed.
     private(set) var pendingReplacement = Set<ModuleId>()
     
+    mutating func removeAll() {
+        self = ModuleChangePlan()
+    }
+    
     /// Set the specified mod to either be installed or uninstalled
     ///
     /// - Parameters:
@@ -327,34 +331,6 @@ struct ModuleChangePlan: Equatable {
             case .installed: "Installed"
             case .installing: "Install Pending"
             case .notInstalled: "Not Installed"
-            }
-        }
-
-        var symbol: SFSymbol {
-            return switch self {
-            case .removing:
-                .xmarkCircle
-
-            case .upgrading, .upgradable:
-                .arrowUpCircle
-
-            case .autoDetected:
-                .personCropCircleBadgeCheckmark
-
-            case .replacing, .replaceable:
-                .arrowTrianglehead2Clockwise
-
-            case .unavailable:
-                .checkmarkCircleBadgeQuestionmark
-
-            case .autoInstalled:
-                .checkmarkCircle
-
-            case .installing, .installed:
-                .checkmarkCircleFill
-
-            case .notInstalled:
-                .circleDashed
             }
         }
     }

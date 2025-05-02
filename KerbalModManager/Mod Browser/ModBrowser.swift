@@ -348,37 +348,15 @@ struct ModStatusLabel: View {
     @Environment(ModBrowserState.self) private var state
 
     var body: some View {
-        let color: Color =
-            switch status {
-            case .installed, .installing, .autoDetected:
-                .green
-            case .upgrading, .upgradable, .replaceable, .replacing:
-                .orange
-            case .removing:
-                .red
-            default:
-                .secondary
-            }
-
-        let bold =
-            switch status {
-            case .removing,
-                .upgrading,
-                .replacing,
-                .installing:
-                true
-            default: false
-            }
-
         HStack {
             Label {
                 Text(status.localizedStringResource)
             } icon: {
                 Image(systemSymbol: status.symbol)
             }
-            .bold(bold)
+            .bold(status.isBold)
             .foregroundColor(
-                backgroundProminence == .increased ? .secondary : color
+                backgroundProminence == .increased ? .secondary : status.color
             )
 
             if let mod {
@@ -394,6 +372,60 @@ struct ModStatusLabel: View {
             }
         }
         .transition(.move(edge: .leading).combined(with: .opacity))
+    }
+}
+
+extension ModuleChangePlan.Status {
+    var symbol: SFSymbol {
+        return switch self {
+        case .removing:
+            .xmarkCircle
+
+        case .upgrading, .upgradable:
+            .arrowshapeUpCircleFill
+
+        case .autoDetected:
+            .personCropCircleBadgeCheckmark
+
+        case .replacing, .replaceable:
+            .repeatCircle
+
+        case .unavailable:
+            .checkmarkCircleBadgeQuestionmark
+
+        case .autoInstalled:
+            .checkmarkCircle
+
+        case .installing, .installed:
+            .checkmarkCircleFill
+
+        case .notInstalled:
+            .circleDashed
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .installed, .installing, .autoDetected:
+            .green
+        case .upgrading, .upgradable, .replaceable, .replacing:
+            .orange
+        case .removing:
+            .red
+        default:
+            .secondary
+        }
+    }
+    
+    var isBold: Bool {
+        switch self {
+        case .removing,
+            .upgrading,
+            .replacing,
+            .installing:
+            true
+        default: false
+        }
     }
 }
 

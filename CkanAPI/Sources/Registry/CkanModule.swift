@@ -375,7 +375,7 @@ public struct ModuleId: Sendable, Equatable, Hashable, CustomStringConvertible,
 
 /// A unique identifier for a module release.
 public struct ReleaseId: Sendable, Equatable, Hashable,
-    CustomDebugStringConvertible
+                         CustomDebugStringConvertible
 {
     public var debugDescription: String {
         "\(moduleId)@\(version)"

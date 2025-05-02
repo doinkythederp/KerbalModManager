@@ -184,7 +184,7 @@ extension InstalledModule {
         case .unmanagedInstall(let unmanaged):
             var install = UnmanagedInstalledModule()
             if unmanaged.hasReleaseVersion {
-                install.version = unmanaged.releaseVersion
+                install.release = ReleaseId(moduleId: moduleId, version: unmanaged.releaseVersion)
             }
 
             self = .unmanaged(install)

@@ -13,6 +13,7 @@ struct ModBrowserToolbar: ToolbarContent {
 
     @State private var isRenamingInstance = false
     @State private var editedInstanceName = ""
+    @State private var isInstalling = false
 
     @Environment(Store.self) private var store
     @Environment(ModBrowserState.self) private var state
@@ -53,7 +54,15 @@ struct ModBrowserToolbar: ToolbarContent {
             }
         }
 
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button("Apply Changes", systemSymbol: .checkmarkRectangleStack) {
+                isInstalling = true
+            }
+            .sheet(isPresented: $isInstalling) {
+                InstallView()
+                    .presentationSizing(.page)
+            }
+            
             Menu {
                 ForEach(SimpleModFilter.allCases) { filter in
                     let binding = Binding {
