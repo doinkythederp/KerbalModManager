@@ -12,67 +12,62 @@ struct ModVersionsView: View {
     var mod: GUIMod
     @Binding var releaseOverride: CkanModule.Release?
 
-    @State private var expanded = true
-
     var body: some View {
         let currentRelease = releaseOverride ?? mod.currentRelease
 
-        DisclosureGroup("Versions", isExpanded: $expanded) {
-            VStack {
-                ForEach(mod.module.releases) { release in
-                    let isViewing = currentRelease.id == release.id
-                    let isInstalled =
+        VStack {
+            ForEach(mod.module.releases) { release in
+                let isViewing = currentRelease.id == release.id
+                let isInstalled =
                     mod.install?.version == release.version.value
 
-                    GroupBox {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(release.versionDescription)
+                GroupBox {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(release.versionDescription)
 
-                                Spacer()
+                            Spacer()
 
-                                Group {
-                                    Button("View", systemSymbol: .eye) {
-                                        releaseOverride = release
-                                    }
-                                    .labelStyle(.iconOnly)
-                                    .disabled(currentRelease.id == release.id)
+                            Group {
+                                Button("View", systemSymbol: .eye) {
+                                    releaseOverride = release
+                                }
+                                .labelStyle(.iconOnly)
+                                .disabled(currentRelease.id == release.id)
 
-                                    Button(
-                                        isInstalled
+                                Button(
+                                    isInstalled
                                         ? "Uninstall" : "Install"
-                                    ) {
-                                        // TODO
-                                    }
+                                ) {
+                                    // TODO
                                 }
-                                .controlSize(.small)
                             }
+                            .controlSize(.small)
+                        }
 
-                            if isViewing || isInstalled {
-                                HStack {
-                                    if isInstalled {
-                                        Label(
-                                            "Installed",
-                                            systemSymbol:
-                                                    .checkmarkCircle
-                                        )
-                                        .foregroundStyle(.green)
-                                    }
-
-                                    if isViewing {
-                                        Label(
-                                            "Viewing",
-                                            systemSymbol: .eye)
-                                    }
+                        if isViewing || isInstalled {
+                            HStack {
+                                if isInstalled {
+                                    Label(
+                                        "Installed",
+                                        systemSymbol:
+                                            .checkmarkCircle
+                                    )
+                                    .foregroundStyle(.green)
                                 }
-                                .foregroundStyle(.secondary)
-                                .font(.callout)
+
+                                if isViewing {
+                                    Label(
+                                        "Viewing",
+                                        systemSymbol: .eye)
+                                }
                             }
+                            .foregroundStyle(.secondary)
+                            .font(.callout)
                         }
                     }
                 }
             }
-            .padding(5)
         }
     }
 }
@@ -82,7 +77,8 @@ struct ModVersionsView: View {
     @Previewable @State var releaseOverride: CkanModule.Release?
 
     ModVersionsView(
-        mod: store.instances.first!.modules.first!, releaseOverride: $releaseOverride
+        mod: store.instances.first!.modules.first!,
+        releaseOverride: $releaseOverride
     )
     .padding(.horizontal)
     .frame(width: 270, height: 350)

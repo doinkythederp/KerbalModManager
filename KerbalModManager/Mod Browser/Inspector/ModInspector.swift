@@ -115,9 +115,25 @@ struct ModInspector: View {
                                 .textSelection(.enabled)
                         }
 
-                        ModResourcesView(module: current)
-                        ModRelationshipsView(module: current)
-                        ModVersionsView(mod: module, releaseOverride: $releaseOverride)
+                        TabView {
+                            Tab {
+                                VStack(alignment: .leading, spacing: 15) {
+                                    ModResourcesView(module: current)
+                                    ModRelationshipsView(module: current)
+                                }
+                                .padding(.horizontal, 5)
+                            } label: {
+                                Text("Details")
+                            }
+
+                            Tab {
+                                ModVersionsView(mod: module, releaseOverride: $releaseOverride)
+                                    .padding(.horizontal, 5)
+                            } label: {
+                                Text("Versions")
+                            }
+                        }
+
 
 
                         Spacer()

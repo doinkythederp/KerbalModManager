@@ -5,8 +5,8 @@
 //  Created by Lewis McClelland on 3/28/25.
 //
 
-import SwiftUI
 import CkanAPI
+import SwiftUI
 
 struct ModResourcesView: View {
     var module: CkanModule.Release
@@ -14,7 +14,10 @@ struct ModResourcesView: View {
     @State private var isExpanded = true
 
     var body: some View {
-        DisclosureGroup("Details and Links", isExpanded: $isExpanded) {
+        VStack(alignment: .leading) {
+            Text("Links and Resources")
+                .font(.title3.bold())
+
             Grid(alignment: .leading) {
                 let collection = module.resources.collection
                 ForEach(collection.elements, id: \.key) { element in
@@ -27,7 +30,7 @@ struct ModResourcesView: View {
                             element.value
                                 .trimmingPrefix(/https?:\/\//)
                         )
-                        .lineLimit(1)
+                            .lineLimit(1)
 
                         Group {
                             if let url {

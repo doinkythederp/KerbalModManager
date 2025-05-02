@@ -372,7 +372,7 @@ private struct ModNameView: View {
                     )
                     
                     switch status {
-                    case .upgrading, .removing, .installing, .replacing:
+                    case .upgrading, .replacing:
                         Button("Cancel") {
                             if let mod {
                                 state.changePlan.cancelChanges(to: mod.id)

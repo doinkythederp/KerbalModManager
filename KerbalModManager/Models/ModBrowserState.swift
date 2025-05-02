@@ -238,8 +238,8 @@ struct ModuleChangePlan: Equatable {
                 }
             }
 
-            guard case .managed(let install) = install,
-                mod.currentRelease.kind != .dlc
+            guard case .managed(_) = install,
+                  mod.currentRelease.kind != .dlc
             else {
                 return .autoDetected
             }
@@ -258,16 +258,19 @@ struct ModuleChangePlan: Equatable {
             {
                 return .unavailable
             }
-
-            if install.wasAutoInstalled {
-                return .autoInstalled
-            }
-
-            return .installed
         }
 
         if pendingInstallation[mod.id] != nil {
             return .installing
+        }
+
+        if case .managed(let install) = mod.install,
+           install.wasAutoInstalled {
+            return .autoInstalled
+        }
+
+        if mod.install != nil {
+            return .installed
         }
 
         return .notInstalled
