@@ -53,7 +53,24 @@ struct ModBrowserToolbar: ToolbarContent {
             }
         }
 
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Group {
+                Button("Apply Changes", image: .customCheckmarkRectangleStack) {
+                    // TODO: Implement applying change plans
+                }
+                .help("Download mods and apply pending changes")
+
+                Button(
+                    "Discard Changes",
+                    image: .customShippingboxSlash,
+                    role: .destructive
+                ) {
+                    state.changePlan = ModuleChangePlan()
+                }
+                .help("Discard all pending changes")
+            }
+            .disabled(state.changePlan.isEmpty)
+
             Menu {
                 ForEach(SimpleModFilter.allCases) { filter in
                     let binding = Binding {
@@ -75,6 +92,7 @@ struct ModBrowserToolbar: ToolbarContent {
                 )
                 .foregroundColor(.red)
             }
+            .help("Filter which mods appears in the browser")
         }
     }
 }

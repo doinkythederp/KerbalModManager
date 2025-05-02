@@ -117,6 +117,7 @@ import SwiftUI
         }
 
         search.tokens.append(contentsOf: tokens)
+        isSearchPresented = true
     }
 
     /// Force a refresh of the search results.
