@@ -188,8 +188,8 @@ struct ModuleChangePlan: Equatable {
 
     /// Plan or cancel the removal of a module.
     mutating func setRemoved(_ removed: Bool, for module: ModuleId) {
+        pendingInstallation[module] = nil
         if removed {
-            pendingInstallation[module] = nil
             pendingRemoval.insert(module)
         } else {
             pendingRemoval.remove(module)
@@ -198,9 +198,9 @@ struct ModuleChangePlan: Equatable {
 
     /// Plan or cancel the replacement of a module.
     mutating func setReplaced(_ replaced: Bool, for module: ModuleId) {
+        pendingRemoval.remove(module)
+        pendingInstallation[module] = nil
         if replaced {
-            pendingRemoval.remove(module)
-            pendingInstallation[module] = nil
             pendingReplacement.insert(module)
         } else {
             pendingReplacement.remove(module)
