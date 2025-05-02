@@ -124,6 +124,67 @@ struct ModBrowserTable: View {
 
     @FocusState private var tableFocus: Bool
 
+    var body: some View {
+        @Bindable var state = state
+
+        ScrollViewReader { proxy in
+            VStack {
+                let searchResults = state.queryModules(
+                    state.instance.modules, instance: instance)
+
+                table(modules: searchResults.elements)
+            }
+            .navigationTitle("Mod Browser")
+            .navigationSubtitle(instance.ckan.name)
+            .focusedSceneValue(\.selectedGameInstance, instance)
+            .toolbar {
+                ModBrowserToolbar(instance: instance)
+
+                ToolbarItemGroup {
+                    Spacer()
+                    Button("Toggle Inspector", systemSymbol: .sidebarTrailing) {
+                        showInspector.toggle()
+                    }
+                }
+            }
+            .inspector(isPresented: $showInspector) {
+                ModInspector().id(state.selectedMod)
+            }
+            .searchable(
+                text: $state.search.text,
+                editableTokens: $state.search.tokens,
+                isPresented: $state.isSearchPresented
+            ) { $token in
+                Picker(selection: $token.category) {
+                    ForEach(ModSearchToken.Category.allCases) { category in
+                        Text(category.localizedStringResource)
+                    }
+                } label: {
+                    Text("\(token.searchTerm)")
+                }
+            }
+            .searchSuggestions(self.searchSuggestions)
+            .onAppear {
+                state.scrollProxy = proxy
+            }
+            .onChange(of: state.modulePendingReveal) {
+                if let request = state.modulePendingReveal {
+                    // Scroll to requested value, and do it after the search has been recalculated.
+                    Task {
+                        proxy.scrollTo(request, anchor: .leading)
+                    }
+                    state.modulePendingReveal = nil
+                }
+            }
+            // Holding Shift prevents the app from overwriting your current search
+            .onModifierKeysChanged(mask: .shift, initial: true) { old, new in
+                state.preferNonDestructiveSearches = new.contains(.shift)
+            }
+            .focusedSceneValue(\.modBrowserState, state)
+            .environment(state)
+        }
+    }
+
     @ViewBuilder
     func table(modules: [GUIMod]) -> some View {
         @Bindable var state = state
@@ -206,119 +267,61 @@ struct ModBrowserTable: View {
         .id(state.sortOrder)
     }
 
-    var body: some View {
-        @Bindable var state = state
-
-        ScrollViewReader { proxy in
-            VStack {
-                let searchResults = state.queryModules(
-                    state.instance.modules, instance: instance)
-
-                table(modules: searchResults.elements)
+    @ViewBuilder
+    func searchSuggestions() -> some View {
+        let text = state.search.text
+        if !text.isEmpty {
+            Section("Details") {
+                Text("Name Contains \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .name,
+                            searchTerm: state.search.text))
+                Text("Description Contains \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .abstract,
+                            searchTerm: state.search.text))
+                Text("Author Contains \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .author,
+                            searchTerm: state.search.text))
+                Text("Has Tag \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .tags,
+                            searchTerm: state.search.text))
             }
-            .navigationTitle("Mod Browser")
-            .navigationSubtitle(instance.ckan.name)
-            .focusedSceneValue(\.selectedGameInstance, instance)
-            .toolbar {
-                ModBrowserToolbar(instance: instance)
-
-                ToolbarItemGroup {
-                    Spacer()
-                    Button("Toggle Inspector", systemSymbol: .sidebarTrailing) {
-                        showInspector.toggle()
-                    }
-                }
+            Section("Relationships") {
+                Text("Depends on \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .depends,
+                            searchTerm: state.search.text))
+                Text("Recommends \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .recommends,
+                            searchTerm: state.search.text))
+                Text("Suggests \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .suggests,
+                            searchTerm: state.search.text))
+                Text("Conflicts with \"\(state.search.text)\"")
+                    .searchCompletion(
+                        ModSearchToken(
+                            category: .conflicts,
+                            searchTerm: state.search.text))
+                Text(
+                    "Satisfies Dependencies for \"\(state.search.text)\""
+                )
+                .searchCompletion(
+                    ModSearchToken(
+                        category: .provides,
+                        searchTerm: state.search.text))
             }
-            .inspector(isPresented: $showInspector) {
-                ModInspector().id(state.selectedMod)
-            }
-            .searchable(
-                text: $state.search.text,
-                editableTokens: $state.search.tokens,
-                isPresented: $state.isSearchPresented
-            ) { $token in
-                Picker(selection: $token.category) {
-                    ForEach(ModSearchToken.Category.allCases) { category in
-                        Text(category.localizedStringResource)
-                    }
-                } label: {
-                    Text("\(token.searchTerm)")
-                }
-            }
-            .searchSuggestions {
-                let text = state.search.text
-                if !text.isEmpty {
-                    Section("Details") {
-                        Text("Name Contains \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .name,
-                                    searchTerm: state.search.text))
-                        Text("Description Contains \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .abstract,
-                                    searchTerm: state.search.text))
-                        Text("Author Contains \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .author,
-                                    searchTerm: state.search.text))
-                        Text("Has Tag \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .tags,
-                                    searchTerm: state.search.text))
-                    }
-                    Section("Relationships") {
-                        Text("Depends on \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .depends,
-                                    searchTerm: state.search.text))
-                        Text("Recommends \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .recommends,
-                                    searchTerm: state.search.text))
-                        Text("Suggests \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .suggests,
-                                    searchTerm: state.search.text))
-                        Text("Conflicts with \"\(state.search.text)\"")
-                            .searchCompletion(
-                                ModSearchToken(
-                                    category: .conflicts,
-                                    searchTerm: state.search.text))
-                        Text(
-                            "Satisfies Dependencies for \"\(state.search.text)\""
-                        )
-                        .searchCompletion(
-                            ModSearchToken(
-                                category: .provides,
-                                searchTerm: state.search.text))
-                    }
-                }
-            }
-            .onAppear {
-                state.scrollProxy = proxy
-            }
-            .onChange(of: state.modulePendingReveal) {
-                if let request = state.modulePendingReveal {
-                    // Scroll to requested value, and do it after the search has been recalculated.
-                    Task {
-                        proxy.scrollTo(request, anchor: .leading)
-                    }
-                    state.modulePendingReveal = nil
-                }
-            }
-            // Holding Shift prevents the app from overwriting your current search
-            .onModifierKeysChanged(mask: .shift, initial: true) { old, new in
-                state.preferNonDestructiveSearches = new.contains(.shift)
-            }
-            .focusedSceneValue(\.modBrowserState, state)
-            .environment(state)
         }
     }
 }
