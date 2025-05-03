@@ -168,7 +168,7 @@ private struct InstallListItem: View {
                 }
             }
         }
-        .font(.system(size: 16))
+        .font(.system(size: 14))
         .padding(.horizontal)
     }
 }
