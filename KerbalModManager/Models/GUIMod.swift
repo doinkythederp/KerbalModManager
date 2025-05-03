@@ -79,10 +79,8 @@ import IdentifiedCollections
         self.module = module
         self.instance = instance
         self.install = install
-        if let installedVersion = install?.version {
-            currentRelease = module.releases.first {
-                $0.version.value == installedVersion
-            }!
+        if let installedRelease = install?.release {
+            currentRelease = module.releases[id: installedRelease]!
         } else {
             currentRelease = module.releases.first!
         }
