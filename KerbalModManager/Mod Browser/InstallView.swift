@@ -49,6 +49,7 @@ struct InstallView: View {
             .controlSize(.large)
         }
         .padding()
+        .presentationSizing(.form)
     }
 
     var changes: IdentifiedArrayOf<Change> {

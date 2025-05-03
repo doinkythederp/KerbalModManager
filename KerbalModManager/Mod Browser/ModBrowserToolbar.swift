@@ -61,7 +61,6 @@ struct ModBrowserToolbar: ToolbarContent {
                 }
                 .sheet(isPresented: $isInstalling) {
                     InstallView()
-                        .presentationSizing(.page)
                 }
 
                 Button(
