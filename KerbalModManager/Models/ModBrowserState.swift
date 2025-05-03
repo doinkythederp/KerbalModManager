@@ -61,7 +61,7 @@ import SwiftUI
             return sortResults
         }
 
-        logger.trace("Mod Browser: Sort order cache miss (\(hash) != \(self.sortResultsHash.debugDescription)")
+        logger.trace("Mod Browser: Sort order cache miss")
 
         let results = IdentifiedArray(
             uncheckedUniqueElements: modules.sorted(using: sortOrder))
@@ -92,11 +92,10 @@ import SwiftUI
         let hash = hasher.finalize()
 
         let results: IdentifiedArrayOf<GUIMod>
-
         if let searchResults, searchResultsHash == hash {
             results = searchResults
         } else {
-            logger.trace("Mod Browser: Search results cache miss (\(hash) != \(self.searchResultsHash.debugDescription)")
+            logger.trace("Mod Browser: Search results cache miss")
 
             results = IdentifiedArray(
                 uncheckedUniqueElements:

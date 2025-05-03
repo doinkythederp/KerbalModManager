@@ -19,22 +19,24 @@ struct ModInspector: View {
 
     var body: some View {
         if let moduleId = state.selectedMod,
-           let module = state.instance.modules[id: moduleId]
+            let module = state.instance.modules[id: moduleId]
         {
             let current = releaseOverride ?? module.currentRelease
 
             VStack(spacing: 0) {
                 if releaseOverride != nil {
-                    Button("Show default version", systemSymbol: .chevronBackward) {
+                    Button(
+                        "Show default version", systemSymbol: .chevronBackward
+                    ) {
                         self.releaseOverride = nil
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(5)
                     .background(.windowBackground)
-                    
+
                     Divider()
                 }
-                
+
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
 
@@ -54,21 +56,25 @@ struct ModInspector: View {
                                     .textSelection(.enabled)
                             }
                             .foregroundStyle(.secondary)
-                            
+
                             Grid(alignment: .center, verticalSpacing: 5) {
                                 let insights = state.instance.insights
-                                
-                                if insights.top100Downloads.contains(module.id) {
-                                    let isTop10 = insights.top10Downloads.contains(module.id)
-                                    
+
+                                if insights.top100Downloads.contains(module.id)
+                                {
+                                    let isTop10 = insights.top10Downloads
+                                        .contains(module.id)
+
                                     GridRow {
                                         Image(systemSymbol: .medalStar)
-                                        Text("Top \(isTop10 ? 10 : 100) most downloaded")
-                                            .gridCellAnchor(.topLeading)
+                                        Text(
+                                            "Top \(isTop10 ? 10 : 100) most downloaded"
+                                        )
+                                        .gridCellAnchor(.topLeading)
                                     }
                                     .bold(isTop10)
                                 }
-                                
+
                                 let downloadStyle =
                                     if current.downloadCount > 100_000 {
                                         Color.green
@@ -77,7 +83,7 @@ struct ModInspector: View {
                                     } else {
                                         Color.secondary
                                     }
-                                
+
                                 GridRow {
                                     Image(systemSymbol: .arrowDownCircleFill)
                                     Text("\(current.downloadCount) downloads")
@@ -88,13 +94,13 @@ struct ModInspector: View {
                             .symbolRenderingMode(.hierarchical)
                             .padding(.top, 1)
 
-
                             WrappingHStack(
                                 alignment: .leading,
                                 horizontalSpacing: 3,
                                 verticalSpacing: 3
                             ) {
-                                ForEach(current.licenses, id: \.self) { license in
+                                ForEach(current.licenses, id: \.self) {
+                                    license in
                                     LicenseTagView(license: license)
                                 }
                                 if current.releaseStatus != .stable {
@@ -127,14 +133,15 @@ struct ModInspector: View {
                             }
 
                             Tab {
-                                ModVersionsView(mod: module, releaseOverride: $releaseOverride)
-                                    .padding(.horizontal, 5)
+                                ModVersionsView(
+                                    mod: module,
+                                    releaseOverride: $releaseOverride
+                                )
+                                .padding(.horizontal, 5)
                             } label: {
                                 Text("Versions")
                             }
                         }
-
-
 
                         Spacer()
                     }
@@ -144,7 +151,8 @@ struct ModInspector: View {
                     HStack {
                         DownloadSizeIndicator(module: current)
                         Spacer()
-                        ModInstallButton(mod: module, release: releaseOverride?.id)
+                        ModInstallButton(
+                            mod: module, release: releaseOverride?.id)
                     }
                     .padding()
                     .background()
@@ -152,8 +160,7 @@ struct ModInspector: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .id(current.id)
             }
-            
-            
+
         } else {
             ContentUnavailableView(
                 "Select a Mod", systemSymbol: .magnifyingglassCircle)
@@ -216,6 +223,8 @@ struct ModInstallButton: View {
             Text(isInstalled ? "Remove": "Install")
                 .frame(minWidth: 50)
         }
+        .buttonStyle(.borderedProminent)
+        .tint(isInstalled ? .red : .green)
         .disabled(mod.isReadOnly)
     }
 }
