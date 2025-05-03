@@ -2,6 +2,7 @@ import AsyncAlgorithms
 import Collections
 import GRPCCore
 import GRPCNIOTransportHTTP2TransportServices
+import IdentifiedCollections
 
 public actor CKANClient {
     private var grpcClient: GRPCClient<HTTP2ClientTransport.TransportServices>
@@ -397,9 +398,9 @@ public struct EmptyCkanActionDelegate: CkanActionDelegate {
 
 public struct OptionalDependencies: Sendable, Equatable, Hashable {
     public init(
-        recommended: Set<OptionalDependencies.Dependency>,
-        suggested: Set<OptionalDependencies.Dependency>,
-        supporters: Set<OptionalDependencies.Dependency>,
+        recommended: IdentifiedArrayOf<OptionalDependencies.Dependency>,
+        suggested: IdentifiedArrayOf<OptionalDependencies.Dependency>,
+        supporters: IdentifiedArrayOf<OptionalDependencies.Dependency>,
         installableRecommended: Set<ModuleId>
     ) {
         self.recommended = recommended
@@ -408,18 +409,18 @@ public struct OptionalDependencies: Sendable, Equatable, Hashable {
         self.installableRecommended = installableRecommended
     }
 
-    public struct Dependency: Sendable, Equatable, Hashable {
-        public init(id: ReleaseId, source: Set<ModuleId>) {
+    public struct Dependency: Sendable, Equatable, Hashable, Identifiable {
+        public init(id: ReleaseId, sources: OrderedSet<ModuleId>) {
             self.id = id
-            self.sources = source
+            self.sources = sources
         }
 
         public var id: ReleaseId
-        public var sources: Set<ModuleId>
+        public var sources: OrderedSet<ModuleId>
     }
 
-    public var recommended: Set<Dependency>
-    public var suggested: Set<Dependency>
-    public var supporters: Set<Dependency>
+    public var recommended: IdentifiedArrayOf<Dependency>
+    public var suggested: IdentifiedArrayOf<Dependency>
+    public var supporters: IdentifiedArrayOf<Dependency>
     public var installableRecommended: Set<ModuleId>
 }

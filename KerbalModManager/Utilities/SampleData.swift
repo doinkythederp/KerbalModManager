@@ -5,6 +5,10 @@
 //  Created by Lewis McClelland on 3/5/25.
 //
 
+// This file contains sample data used by previews to help visualize UI during development of the app.
+// Sample data using real mods is sourced from NetKAN (https://github.com/KSP-CKAN/NetKAN), which
+// is licensed under CC-0.
+
 import CkanAPI
 import Foundation
 import SwiftUI
@@ -54,8 +58,9 @@ extension CkanModule {
                     depends: [
                         Release.Relationship(direct: "Kopernicus"),
                         Release.Relationship(direct: "Parallax-Textures"),
+                        // not real, just for visualizing anyOf relationships
                         Release.Relationship(anyOf: ["RealSolarSystem", "JNSQ"]
-                        ),  // not real, just for visualizing anyOf relationships
+                        ),
                     ],
                     recommends: [
                         Release.Relationship(direct: "Scatterer")
@@ -119,6 +124,61 @@ extension CkanModule {
                     downloadCount: 1560
                 )
             ]),
+        CkanModule(
+            id: "Astrogator",
+            releases: [
+                CkanModule.Release(
+                    id: "Astrogator",
+                    name: "Astrogator",
+                    version: .init("1.0.0"),
+                    abstract:
+                        "A space-navigational aide for Kerbal Space Program",
+                    description:
+                        "Displays a table of all of the bodies reachable from the current location, along with the time till burn and delta V needed to reach them. These values can be used to time warp or generate maneuver nodes. Supports prograde and retrograde orbits, nested ejection trajectories, transfers to satellites of the current parent body, and transfers to other vessels.",
+                    authors: ["HebaruSan"],
+                    resources: .init(),
+                    releaseDate: .now,
+                    downloadSizeBytes: 445977,
+                    downloadCount: 213_137
+                )
+            ]),
+        CkanModule(
+            id: "xScienceContinued",
+            releases: [
+                CkanModule.Release(
+                    id: "xScienceContinued",
+                    name: "[x] Science! Continued",
+                    version: .init("1.0.0"),
+                    abstract:
+                        "The Science Report and Checklist for KSP.  [x] Science! keeps track of the science experiments completed, recovered and held on vehicles and kerbals.",
+                    authors: [
+                        "Z-Key Aerospace", "Brodrick", "Flupster",
+                        "linuxgurugamer",
+                    ],
+                    licenses: ["CC-BY-NC-SA-4.0"],
+                    resources: .init(),
+                    releaseDate: .now,
+                    downloadSizeBytes: 445977,
+                    downloadCount: 344_283
+                )
+            ]),
+        CkanModule(
+            id: "KSPCommunityFixes",
+            releases: [
+                CkanModule.Release(
+                    id: "KSPCommunityFixes",
+                    name: "KSP Community Fixes",
+                    version: .init("1.37.3"),
+                    abstract:
+                        "Fixes for stock bugs, also provides various QoL/UI improvements",
+                    authors: ["Gotmachine"],
+                    licenses: ["MIT"],
+                    resources: .init(),
+                    releaseDate: .now,
+                    downloadSizeBytes: 445977,
+                    downloadCount: 511_879
+                )
+            ]),
 
     ]
 }
@@ -158,7 +218,7 @@ struct SampleData: PreviewModifier {
         let state = ModBrowserState(instance: store.instances.first!)
 
         state.selectedMod = GUIMod.samples.first!.id
-        
+
         let installingMod = state.instance.modules[id: "ModuleManager"]!
         state.changePlan.set(installingMod, installed: true)
 

@@ -147,14 +147,8 @@ private struct ModRelationshipsSection<Header: View, Help: View>: View {
             HStack {
                 header()
 
-                HelpLink {
-                    helpShown.toggle()
-                }
-                .popover(isPresented: $helpShown) {
+                HelpPopoverLink(isPresented: $helpShown) {
                     help()
-                        .padding()
-                        .multilineTextAlignment(.center)
-                        .presentationSizing(.page)
                 }
                 .controlSize(.small)
             }

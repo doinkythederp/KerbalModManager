@@ -1,5 +1,5 @@
 //
-//  InstallView.swift
+//  ConfirmInstallView.swift
 //  KerbalModManager
 //
 //  Created by Lewis McClelland on 5/2/25.
@@ -10,7 +10,7 @@ import IdentifiedCollections
 import SFSafeSymbols
 import SwiftUI
 
-struct InstallView: View {
+struct ConfirmInstallView: View {
     @Environment(ModBrowserState.self) private var state
     @Environment(\.dismiss) private var dismiss
 
@@ -42,7 +42,9 @@ struct InstallView: View {
                 Button("Cancel", role: .cancel) {
                     dismiss()
                 }
-                Button("Confirm") {}
+                Button("Confirm") {
+                    state.installStage = .pickOptionalDependencies(OptionalDependencies(recommended: [], suggested: [], supporters: [], installableRecommended: []))
+                }
                     .keyboardShortcut(.defaultAction)
                     
             }
@@ -109,7 +111,7 @@ struct InstallView: View {
 }
 
 private struct InstallListItem: View {
-    var change: InstallView.Change
+    var change: ConfirmInstallView.Change
     
     @Environment(ModBrowserState.self) private var state
     
@@ -174,5 +176,6 @@ private struct InstallListItem: View {
 }
 
 #Preview(traits: .modifier(.sampleData)) {
-    InstallView()
+    ConfirmInstallView()
+        .background()
 }
