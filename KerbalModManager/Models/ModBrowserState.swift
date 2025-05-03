@@ -22,8 +22,16 @@ import SwiftUI
 
     var isSearchPresented = false
     var search = SearchQuery()
-    @ObservationIgnored private var searchResults: OrderedSet<ModuleId>?
-    @ObservationIgnored private var searchResultsHash: Int?
+
+    @ObservationIgnored
+    private var sortResults: IdentifiedArrayOf<GUIMod>?
+    @ObservationIgnored
+    private var sortResultsHash: Int?
+
+    @ObservationIgnored
+    private var searchResults: IdentifiedArrayOf<GUIMod>?
+    @ObservationIgnored
+    private var searchResultsHash: Int?
 
     /// Whether to prefer adding to the existing search query rather than replacing it.
     ///
@@ -39,6 +47,30 @@ import SwiftUI
     var modulePendingReveal: ModuleId?
 
     var changePlan = ModuleChangePlan()
+
+    /// Returns the given modules reordered such that the ``sortOrder`` is satisfied.
+    func sortedModules(
+        _ modules: IdentifiedArrayOf<GUIMod>
+    ) -> IdentifiedArrayOf<GUIMod> {
+        var hasher = Hasher()
+        hasher.combine(modules.ids.unordered)
+        hasher.combine(sortOrder)
+        let hash = hasher.finalize()
+
+        if let sortResults, hash == sortResultsHash {
+            return sortResults
+        }
+
+        logger.trace("Mod Browser: Sort order cache miss (\(hash) != \(self.sortResultsHash.debugDescription)")
+
+        let results = IdentifiedArray(
+            uncheckedUniqueElements: modules.sorted(using: sortOrder))
+
+        sortResults = results
+        sortResultsHash = hash
+
+        return results
+    }
 
     /// Filter the given modules to only include results that satisfy the current search query.
     ///
@@ -59,19 +91,23 @@ import SwiftUI
         hasher.combine(search)
         let hash = hasher.finalize()
 
-        let resultIds =
-            if let searchResults, searchResultsHash == hash {
-                searchResults
-            } else {
-                search.query(
-                    IdentifiedArray(uniqueElements: modules),
-                    instance: instance,
-                    changePlan: changePlan
-                ).ids
-            }
+        let results: IdentifiedArrayOf<GUIMod>
 
-        let results = modules.filter {
-            resultIds.contains($0.id)
+        if let searchResults, searchResultsHash == hash {
+            results = searchResults
+        } else {
+            logger.trace("Mod Browser: Search results cache miss (\(hash) != \(self.searchResultsHash.debugDescription)")
+
+            results = IdentifiedArray(
+                uncheckedUniqueElements:
+                    search.query(
+                        IdentifiedArray(uniqueElements: modules),
+                        instance: instance,
+                        changePlan: changePlan
+                    )
+                    .sorted(using: sortOrder)
+            )
+
         }
 
         // If the user clicked on the "reveal" button of a dependency and
@@ -88,7 +124,7 @@ import SwiftUI
             return queryModules(modules, instance: instance)
         }
 
-        searchResults = results.ids
+        searchResults = results
         searchResultsHash = hash
 
         return results
@@ -150,18 +186,21 @@ struct ModuleChangePlan: Equatable {
     private(set) var pendingRemoval = Set<ModuleId>()
     /// A set of modules whos replacements will be installed after the plan is executed.
     private(set) var pendingReplacement = Set<ModuleId>()
-    
+
     mutating func removeAll() {
         self = ModuleChangePlan()
     }
-    
+
     /// Set the specified mod to either be installed or uninstalled
     ///
     /// - Parameters:
     ///   - mod: The mod whose install state will be modified
     ///   - installed: Indicates whether the mod will be installed after this change plan is applied
     ///   - release: Specifies which release of the mod will be used
-    mutating func set(_ mod: GUIMod, installed: Bool, release releaseOverride: ReleaseId? = nil) {
+    mutating func set(
+        _ mod: GUIMod, installed: Bool,
+        release releaseOverride: ReleaseId? = nil
+    ) {
         assert(mod.currentRelease.kind != .dlc, "Cannot install or remove DLCs")
 
         let alreadyInstalled = mod.isUserInstalled(release: releaseOverride)
@@ -169,11 +208,12 @@ struct ModuleChangePlan: Equatable {
         if alreadyInstalled {
             setRemoved(!installed, for: mod.id)
         } else {
-            let release = installed ? (releaseOverride ?? mod.currentRelease.id) : nil
+            let release =
+                installed ? (releaseOverride ?? mod.currentRelease.id) : nil
             setPendingRelease(release, for: mod.id)
         }
     }
-    
+
     mutating func cancelChanges(to mod: ModuleId) {
         pendingInstallation[mod] = nil
         pendingRemoval.remove(mod)
@@ -214,17 +254,17 @@ struct ModuleChangePlan: Equatable {
             && pendingRemoval.isEmpty
             && pendingReplacement.isEmpty
     }
-    
+
     /// Returns a Boolean value indicating whether the specified mod will be intentionally installed by the user after this plan is executed.
     func isUserInstalled(_ mod: GUIMod) -> Bool {
         if pendingInstallation[mod.id] != nil {
             return true
         }
-        
+
         if pendingRemoval.contains(mod.id) {
             return false
         }
-        
+
         return mod.isUserInstalled
     }
 
@@ -264,7 +304,7 @@ struct ModuleChangePlan: Equatable {
             }
 
             guard case .managed(_) = install,
-                  mod.currentRelease.kind != .dlc
+                mod.currentRelease.kind != .dlc
             else {
                 return .autoDetected
             }
@@ -290,7 +330,8 @@ struct ModuleChangePlan: Equatable {
         }
 
         if case .managed(let install) = mod.install,
-           install.wasAutoInstalled {
+            install.wasAutoInstalled
+        {
             return .autoInstalled
         }
 

@@ -112,69 +112,71 @@ struct ModBrowserTable: View {
         @Bindable var state = state
 
         ScrollViewReader { proxy in
-            VStack {
-                let searchResults = state.queryModules(
-                    state.instance.modules, instance: instance)
+            let searchResults = state.queryModules(
+                state.instance.modules, instance: instance)
+            let sortedResults = state.sortedModules(searchResults)
+            
+            table(modules: sortedResults)
+                .navigationTitle("Mod Browser")
+                .navigationSubtitle(instance.ckan.name)
+                .focusedSceneValue(\.selectedGameInstance, instance)
+                .toolbar {
+                    ModBrowserToolbar(instance: instance)
 
-                table(modules: searchResults.elements)
-            }
-            .navigationTitle("Mod Browser")
-            .navigationSubtitle(instance.ckan.name)
-            .focusedSceneValue(\.selectedGameInstance, instance)
-            .toolbar {
-                ModBrowserToolbar(instance: instance)
-
-                ToolbarItemGroup {
-                    Spacer()
-                    Button("Toggle Inspector", systemSymbol: .sidebarTrailing) {
-                        showInspector.toggle()
+                    ToolbarItemGroup {
+                        Spacer()
+                        Button(
+                            "Toggle Inspector", systemSymbol: .sidebarTrailing
+                        ) {
+                            showInspector.toggle()
+                        }
                     }
                 }
-            }
-            .inspector(isPresented: $showInspector) {
-                ModInspector().id(state.selectedMod)
-            }
-            .searchable(
-                text: $state.search.text,
-                editableTokens: $state.search.tokens,
-                isPresented: $state.isSearchPresented
-            ) { $token in
-                Picker(selection: $token.category) {
-                    ForEach(ModSearchToken.Category.allCases) { category in
-                        Text(category.localizedStringResource)
-                    }
-                } label: {
-                    Text("\(token.searchTerm)")
+                .inspector(isPresented: $showInspector) {
+                    ModInspector().id(state.selectedMod)
                 }
-            }
-            .searchSuggestions(self.searchSuggestions)
-            .onAppear {
-                state.scrollProxy = proxy
-            }
-            .onChange(of: state.modulePendingReveal) {
-                if let request = state.modulePendingReveal {
-                    // Scroll to requested value, and do it after the search has been recalculated.
-                    Task {
-                        proxy.scrollTo(request, anchor: .leading)
+                .searchable(
+                    text: $state.search.text,
+                    editableTokens: $state.search.tokens,
+                    isPresented: $state.isSearchPresented
+                ) { $token in
+                    Picker(selection: $token.category) {
+                        ForEach(ModSearchToken.Category.allCases) { category in
+                            Text(category.localizedStringResource)
+                        }
+                    } label: {
+                        Text("\(token.searchTerm)")
                     }
-                    state.modulePendingReveal = nil
                 }
-            }
-            // Holding Shift prevents the app from overwriting your current search
-            .onModifierKeysChanged(mask: .shift, initial: true) { old, new in
-                state.preferNonDestructiveSearches = new.contains(.shift)
-            }
-            .focusedSceneValue(\.modBrowserState, state)
-            .environment(state)
+                .searchSuggestions(self.searchSuggestions)
+                .onAppear {
+                    state.scrollProxy = proxy
+                }
+                .onChange(of: state.modulePendingReveal) {
+                    if let request = state.modulePendingReveal {
+                        // Scroll to requested value, and do it after the search has been recalculated.
+                        Task {
+                            proxy.scrollTo(request, anchor: .leading)
+                        }
+                        state.modulePendingReveal = nil
+                    }
+                }
+                // Holding Shift prevents the app from overwriting your current search
+                .onModifierKeysChanged(mask: .shift, initial: true) {
+                    old, new in
+                    state.preferNonDestructiveSearches = new.contains(.shift)
+                }
+                .focusedSceneValue(\.modBrowserState, state)
+                .environment(state)
         }
     }
 
     @ViewBuilder
-    func table(modules: [GUIMod]) -> some View {
+    func table(modules: IdentifiedArrayOf<GUIMod>) -> some View {
         @Bindable var state = state
 
         Table(
-            modules.sorted(using: state.sortOrder),
+            modules,
             selection: $state.selectedMod,
             sortOrder: $state.sortOrder,
             columnCustomization: $columnCustomization
@@ -403,7 +405,7 @@ extension ModuleChangePlan.Status {
             .circleDashed
         }
     }
-    
+
     var color: Color {
         switch self {
         case .installed, .installing, .autoDetected:
@@ -416,7 +418,7 @@ extension ModuleChangePlan.Status {
             .secondary
         }
     }
-    
+
     var isBold: Bool {
         switch self {
         case .removing,
