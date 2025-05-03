@@ -60,19 +60,23 @@ struct SearchQuery: Hashable {
 
     /// Filters the given set of modules down to only the ones that satisfy this search query.
     func query(
-        _ modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>,
-        instance: GUIInstance
-    ) -> IdentifiedArray<CkanModule.ID, CkanModule.Release> {
+        _ modules: IdentifiedArray<ModuleId, GUIMod>,
+        instance: GUIInstance,
+        changePlan: ModuleChangePlan
+    ) -> IdentifiedArray<ModuleId, GUIMod> {
         modules
-            .filter { module in
+            .filter { mod in
                 filters.allSatisfy { filter in
-                    filter.check(module, instance: instance, modules: modules)
+                    filter.check(
+                        mod, instance: instance, modules: modules,
+                        changePlan: changePlan)
                 }
                     && tokens.allSatisfy { token in
                         token.check(
-                            module, instance: instance, modules: modules)
+                            mod, instance: instance, modules: modules,
+                            changePlan: changePlan)
                     }
-                    && module.containsSearchQuery(text)
+                    && mod.currentRelease.containsSearchQuery(text)
             }
     }
 }

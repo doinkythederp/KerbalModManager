@@ -22,8 +22,8 @@ final class GUIInstance: Identifiable {
 
     var modules = IdentifiedArray<ModuleId, GUIMod>(id: \.module.id)
 
-    private(set) var compatibleModules = IdentifiedArray<ModuleId, GUIMod>(
-        id: \.module.id)
+    private(set) var compatibleModules = IdentifiedArray<ModuleId, GUIMod>()
+    private(set) var installedModules = IdentifiedArray<ModuleId, GUIMod>()
 
     func index(module: GUIMod) {
         assert(modules.contains(module))
@@ -32,6 +32,12 @@ final class GUIInstance: Identifiable {
             compatibleModules.append(module)
         } else {
             compatibleModules.remove(module)
+        }
+
+        if module.install != nil {
+            installedModules.append(module)
+        } else {
+            installedModules.remove(module)
         }
     }
 

@@ -64,13 +64,9 @@ import SwiftUI
                 searchResults
             } else {
                 search.query(
-                    IdentifiedArray(
-                        uniqueElements: modules.compactMap {
-                            $0.currentRelease
-                        },
-                        id: \.moduleId
-                    ),
-                    instance: instance
+                    IdentifiedArray(uniqueElements: modules),
+                    instance: instance,
+                    changePlan: changePlan
                 ).ids
             }
 

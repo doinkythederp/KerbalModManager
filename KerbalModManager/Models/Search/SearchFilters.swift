@@ -5,9 +5,9 @@
 //  Created by Lewis McClelland on 4/14/25.
 //
 
-import Foundation
 import CkanAPI
 import Collections
+import Foundation
 import IdentifiedCollections
 
 /// A filter that does not require an associated search term.
@@ -53,20 +53,23 @@ enum SimpleModFilter: Hashable, CaseIterable,
     }
 
     func check(
-        _ release: CkanModule.Release,
+        _ mod: GUIMod,
         instance: GUIInstance,
-        modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
+        modules: IdentifiedArray<ModuleId, GUIMod>,
+        changePlan: ModuleChangePlan
     ) -> Bool {
         switch self {
         case .compatible:
-            instance.compatibleModules.ids.contains(release.moduleId)
+            instance.compatibleModules.ids.contains(mod.id)
         case .installed:
-            true  // TODO: once we track installs
+            changePlan.pendingInstallation[mod.id] != nil
+                || instance.installedModules.ids.contains(mod.id)
         case .upgradable:
-            true  // TODO: once we track installs
-
+            mod.canBeUpgraded
         default:
-            !(counterpart!.check(release, instance: instance, modules: modules))
+            !(counterpart!.check(
+                mod, instance: instance, modules: modules,
+                changePlan: changePlan))
         }
     }
 }
@@ -118,11 +121,14 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
     var searchTerm: String
 
     func check(
-        _ release: CkanModule.Release,
+        _ mod: GUIMod,
         instance: GUIInstance,
-        modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
+        modules: IdentifiedArray<ModuleId, GUIMod>,
+        changePlan: ModuleChangePlan
     ) -> Bool {
-        switch self.category {
+        let release = mod.currentRelease
+
+        return switch self.category {
         case .name:
             release.name.localizedCaseInsensitiveContains(searchTerm)
         case .author:
@@ -150,13 +156,16 @@ struct ModSearchToken: Hashable, Identifiable, ModSearchFilter {
 
     private static func flattenRelationships(
         _ relationships: [CkanModule.Release.Relationship],
-        modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
+        modules: IdentifiedArray<ModuleId, GUIMod>
     ) -> [String] {
         relationships
             .flatMap {
                 switch $0.type {
                 case .direct(let direct):
-                    [modules[id: direct.reference]?.name ?? direct.reference.value]
+                    [
+                        modules[id: direct.reference]?.currentRelease.name
+                            ?? direct.reference.value
+                    ]
                 case .anyOf(allowedModules: let allowed):
                     flattenRelationships(allowed, modules: modules)
                 }
@@ -176,8 +185,9 @@ extension [String] {
 
 protocol ModSearchFilter {
     func check(
-        _ release: CkanModule.Release,
+        _ mod: GUIMod,
         instance: GUIInstance,
-        modules: IdentifiedArray<CkanModule.ID, CkanModule.Release>
+        modules: IdentifiedArray<ModuleId, GUIMod>,
+        changePlan: ModuleChangePlan
     ) -> Bool
 }
