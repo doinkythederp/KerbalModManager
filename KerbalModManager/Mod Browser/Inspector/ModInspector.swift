@@ -151,8 +151,12 @@ struct ModInspector: View {
                     HStack {
                         DownloadSizeIndicator(module: current)
                         Spacer()
+                        
                         ModInstallButton(
-                            mod: module, release: releaseOverride?.id)
+                            mod: module,
+                            release: releaseOverride?.id
+                        )
+                        .buttonStyle(.borderedProminent)
                     }
                     .padding()
                     .background()
@@ -223,7 +227,6 @@ struct ModInstallButton: View {
             Text(isInstalled ? "Remove": "Install")
                 .frame(minWidth: 50)
         }
-        .buttonStyle(.borderedProminent)
         .tint(isInstalled ? .red : .green)
         .disabled(mod.isReadOnly)
     }
