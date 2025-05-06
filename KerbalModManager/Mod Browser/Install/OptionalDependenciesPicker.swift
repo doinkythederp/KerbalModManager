@@ -56,7 +56,7 @@ struct OptionalDependenciesPicker: View {
                 .width(16)
 
                 TableColumn("Name", value: \.release.name)
-                TableColumn("Version", value: \.id.version)
+                TableColumn("Version", value: \.release.version.description)
                 TableColumn("Suggestion Source") { row in
                     Text(
                         row.dependency.sources

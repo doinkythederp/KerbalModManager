@@ -423,4 +423,11 @@ public struct OptionalDependencies: Sendable, Equatable, Hashable {
     public var suggested: IdentifiedArrayOf<Dependency>
     public var supporters: IdentifiedArrayOf<Dependency>
     public var installableRecommended: Set<ModuleId>
+
+    public var isEmpty: Bool {
+        recommended.isEmpty
+            && suggested.isEmpty
+            && supporters.isEmpty
+            && installableRecommended.isEmpty
+    }
 }

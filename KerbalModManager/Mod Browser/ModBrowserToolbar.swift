@@ -58,10 +58,11 @@ struct ModBrowserToolbar: ToolbarContent {
                 @Bindable var state = state
 
                 Button("Apply Changes", systemSymbol: .checkmarkRectangleStack) {
-                    state.installStage = .pending
+                    state.installModel.showPendingChanges()
                 }
-                .sheet(item: $state.installStage) { stage in
-                    InstallFlow(stage: stage)
+                // show sheet when install stage is set
+                .sheet(item: $state.installModel.stage) { stage in
+                    InstallFlowView(model: state.installModel, stage: stage)
                 }
 
                 Button(

@@ -15,8 +15,28 @@ struct ErrorAlertView<Contents: View>: View {
     var body: some View {
         if let store {
             @Bindable var store = store
-            contents()
-                .alert(isPresented: $store.showCkanError, error: store.ckanError) {}
+            if ProcessInfo.isXcodePreview {
+                if store.showCkanError, let error = store.ckanError {
+                    VStack {
+                        Text("ERROR: \(error.localizedDescription)")
+                        if let desc = error.errorDescription {
+                            Text(desc)
+                        }
+                        Button("Copy Error") {
+                            NSPasteboard.general.copy(error.localizedDescription)
+                        }
+                        Button("Dismiss") {
+                            store.showCkanError = false
+                            store.ckanError = nil
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+                contents()
+            } else {
+                contents()
+                    .alert(isPresented: $store.showCkanError, error: store.ckanError) {}
+            }
         } else {
             contents()
                 .onAppear {

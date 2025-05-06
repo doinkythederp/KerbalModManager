@@ -12,6 +12,7 @@ import SwiftUI
 
 struct ConfirmInstallView: View {
     @Environment(ModBrowserState.self) private var state
+    @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -27,7 +28,7 @@ struct ConfirmInstallView: View {
             }
             .alternatingRowBackgrounds()
             .environment(\.defaultMinListRowHeight, 40)
-            
+
             HStack {
                 Button(role: .destructive) {
                     state.changePlan.removeAll()
@@ -36,17 +37,17 @@ struct ConfirmInstallView: View {
                     Label("Discard Changes", systemSymbol: .trash)
                         .foregroundStyle(.red)
                 }
-                
+
                 Spacer()
-                
+
                 Button("Cancel", role: .cancel) {
                     dismiss()
                 }
                 Button("Confirm") {
-                    state.installStage = .pickOptionalDependencies(OptionalDependencies(recommended: [], suggested: [], supporters: [], installableRecommended: []))
+                    beginInstallation()
                 }
-                    .keyboardShortcut(.defaultAction)
-                    
+                .keyboardShortcut(.defaultAction)
+
             }
             .controlSize(.large)
         }
@@ -83,6 +84,18 @@ struct ConfirmInstallView: View {
 
         return changes
     }
+    
+    func beginInstallation() {
+        Task {
+            do {
+                try await state.installModel.run(plan: state.changePlan, store: store)
+            } catch let error as CkanError {
+                store.showCkanError = true
+                store.ckanError = error
+                state.installModel.cancel()
+            }
+        }
+    }
 
     struct Change: Identifiable {
         var id: ModuleId
@@ -112,42 +125,45 @@ struct ConfirmInstallView: View {
 
 private struct InstallListItem: View {
     var change: ConfirmInstallView.Change
-    
+
     @Environment(ModBrowserState.self) private var state
-    
+
     var body: some View {
         HStack(spacing: 20) {
             let mod = state.instance.modules[id: change.id]
-            let release: CkanModule.Release? = switch change.type {
-            case .install(release: let releaseId):
-                mod?.module.releases[id: releaseId]
-            case .upgrade(_, _):
-                nil
-            default:
-                mod?.installedRelease
-            }
-            
+            let release: CkanModule.Release? =
+                switch change.type {
+                case .install(release: let releaseId):
+                    mod?.module.releases[id: releaseId]
+                case .upgrade(_, _):
+                    nil
+                default:
+                    mod?.installedRelease
+                }
+
             Image(systemSymbol: change.type.status.symbol)
                 .foregroundStyle(change.type.status.color)
-            
-            let name = if let release {
-                Text("\(release.name) \(release.version)")
-                    .bold()
-            } else if let mod {
-                Text("\(mod.currentRelease.name)")
-                    .bold()
-            } else {
-                Text("\(change.id)")
-                    .foregroundStyle(.red)
-            }
-            
+
+            let name =
+                if let release {
+                    Text("\(release.name) \(release.version)")
+                        .bold()
+                } else if let mod {
+                    Text("\(mod.currentRelease.name)")
+                        .bold()
+                } else {
+                    Text("\(change.id)")
+                        .foregroundStyle(.red)
+                }
 
             switch change.type {
             case .install(_):
                 Text("\(name) will be installed.")
             case .upgrade(new: let releaseId, _):
                 if let release = mod?.module.releases[id: releaseId] {
-                    Text("\(name) will be upgraded to **\(release.version.description)**.")
+                    Text(
+                        "\(name) will be upgraded to **\(release.version.description)**."
+                    )
                 } else {
                     Text("\(name) will be upgraded.")
                 }
@@ -155,15 +171,17 @@ private struct InstallListItem: View {
                 Text("\(name) will be removed.")
             case .replace:
                 if let release,
-                   let replacedBy = release.replacedBy?.type,
-                   case .direct(let direct) = replacedBy
+                    let replacedBy = release.replacedBy
                 {
-                    let replacement = if let module = state.instance.modules[id: direct.reference] {
-                        module.currentRelease.name
-                    } else {
-                        direct.reference.value
-                    }
-                    
+                    let replacement =
+                        if let module = state.instance.modules[
+                            id: replacedBy.reference]
+                        {
+                            module.currentRelease.name
+                        } else {
+                            replacedBy.reference.value
+                        }
+
                     Text("\(name) will be replaced by **\(replacement)**.")
                 } else {
                     Text("\(name) will be replaced.")

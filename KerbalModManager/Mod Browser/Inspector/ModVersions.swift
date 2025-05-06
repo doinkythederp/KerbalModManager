@@ -25,7 +25,7 @@ struct ModVersionsView: View {
                 GroupBox {
                     VStack(alignment: .leading) {
                         HStack {
-                            Text(release.versionDescription)
+                            Text(release.version.description)
 
                             Spacer()
 

@@ -7,8 +7,12 @@
 
 import SwiftUI
 
-struct InstallFlow: View {
-    var stage: InstallStage
+struct InstallFlowView: View {
+    var model: InstallModel
+
+    // This stage override parameter is useful for the sheet close animation because the GUI
+    // needs to continue to show the same stage even while animating out.
+    var stage: InstallModel.Stage?
 
     @Environment(ModBrowserState.self) private var state
 
@@ -18,9 +22,13 @@ struct InstallFlow: View {
     var body: some View {
         VStack {
             VStack {
-                switch stage {
+                switch stage ?? model.stage {
+                case nil:
+                    Label("No install in progress", systemSymbol: .exclamationmarkTriangle).padding()
+                    
                 case .pending:
                     ConfirmInstallView()
+                    
                 case .pickOptionalDependencies(let dependencies):
                     OptionalDependenciesPicker(dependencies: dependencies, shouldSkip: $skipOptionalDependencies)
                 }
@@ -32,13 +40,10 @@ struct InstallFlow: View {
 #Preview(traits: .modifier(.sampleData)) {
     @Previewable @Environment(ModBrowserState.self) var state
 
-    VStack {
-        if let stage = state.installStage {
-            InstallFlow(stage: stage)
-                .background()
+    InstallFlowView(model: state.installModel)
+        .frame(width: 480, height: 480)
+        .background()
+        .onAppear {
+            state.installModel.showPendingChanges()
         }
-    }
-    .onAppear {
-        state.installStage = .pending
-    }
 }

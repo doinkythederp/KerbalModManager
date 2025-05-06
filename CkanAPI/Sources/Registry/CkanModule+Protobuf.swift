@@ -55,7 +55,7 @@ extension CkanModule.Release {
             description = ckan.description_p
         }
         if ckan.hasReplacedBy {
-            replacedBy = Relationship(from: ckan.replacedBy)
+            replacedBy = DirectRelationship(from: ckan.replacedBy)
         }
         if ckan.hasKspVersion {
             kspVersion = GameVersion(from: ckan.kspVersion)

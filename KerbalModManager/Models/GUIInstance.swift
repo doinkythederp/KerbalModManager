@@ -40,6 +40,20 @@ final class GUIInstance: Identifiable {
             installedModules.remove(module)
         }
     }
+    
+    /// Returns a set of all the module releases which will be installed by the given plan, including releases which will
+    /// be installed due to a module replacement.
+    func modulesInstalled(by plan: ModuleChangePlan) -> Set<ReleaseId> {
+        let byInstall = plan.pendingInstallation.values
+        
+        let byReplace = plan.pendingReplacement
+            .compactMap { id in modules[id: id] }
+            .compactMap(\.currentRelease.replacedBy)
+            .compactMap { relationship in modules[id: relationship.reference] }
+            .map(\.currentRelease.id)
+        
+        return Set(byInstall + byReplace)
+    }
 
     private(set) var insights = Insights()
 

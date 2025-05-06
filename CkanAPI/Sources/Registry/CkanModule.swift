@@ -66,7 +66,7 @@ import IdentifiedCollections
         public var releaseDate: Date
 
         public var releaseStatus: Status
-        public var replacedBy: Relationship?
+        public var replacedBy: DirectRelationship?
 
         public var provides: [String]
         public var conflicts: [Relationship]
@@ -222,7 +222,7 @@ import IdentifiedCollections
             localizations: [Locale] = [], tags: [String] = [],
             releaseDate: Date,
             releaseStatus: CkanModule.Release.Status = .stable,
-            replacedBy: CkanModule.Release.Relationship? = nil,
+            replacedBy: CkanModule.Release.DirectRelationship? = nil,
             provides: [String] = [],
             conflicts: [CkanModule.Release.Relationship] = [],
             depends: [CkanModule.Release.Relationship] = [],
@@ -267,7 +267,7 @@ import IdentifiedCollections
     }
 
     public struct Version: CustomStringConvertible, Equatable, Hashable,
-        Sendable
+                           Sendable, CustomDebugStringConvertible
     {
         public let value: String
 
@@ -300,7 +300,11 @@ import IdentifiedCollections
         }
 
         public var description: String {
-            value
+            String(versionComponent)
+        }
+        
+        public var debugDescription: String {
+            "Version \(value)"
         }
     }
 }

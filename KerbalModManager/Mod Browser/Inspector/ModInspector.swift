@@ -45,7 +45,7 @@ struct ModInspector: View {
                                 Text(current.name)
                                     .font(.title2.bold())
 
-                                Text(current.versionDescription)
+                                Text(current.version.description)
                                     .font(.title3)
                                     .foregroundStyle(.secondary)
                             }

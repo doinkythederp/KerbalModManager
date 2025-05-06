@@ -49,7 +49,7 @@ import SwiftUI
     // Install state
 
     var changePlan = ModuleChangePlan()
-    var installStage: InstallStage?
+    var installModel: InstallModel
 
     /// Returns the given modules reordered such that the ``sortOrder`` is satisfied.
     func sortedModules(
@@ -164,6 +164,7 @@ import SwiftUI
 
     init(instance: GUIInstance) {
         self.instance = instance
+        installModel = InstallModel(instance: instance)
     }
 }
 

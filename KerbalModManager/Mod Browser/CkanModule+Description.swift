@@ -11,9 +11,6 @@ import Foundation
 import CkanAPI
 
 extension CkanModule.Release {
-    var versionDescription: String {
-        String(version.versionComponent)
-    }
     var authorsDescription: String {
         authors.formatted()
     }
