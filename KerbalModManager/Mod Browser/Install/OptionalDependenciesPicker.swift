@@ -98,8 +98,13 @@ struct OptionalDependenciesPicker: View {
 
                 Spacer()
 
-                Button("Skip") {}
-                Button("Confirm") {}
+                Button("Skip") {
+                    selectedMods.removeAll()
+                    confirmInstall()
+                }
+                Button("Confirm") {
+                    confirmInstall()
+                }
                     .keyboardShortcut(.defaultAction)
             }
             .controlSize(.large)
@@ -107,6 +112,10 @@ struct OptionalDependenciesPicker: View {
         .padding()
         .frame(minWidth: 600)
         .presentationSizing(.form)
+    }
+
+    func confirmInstall() {
+        state.installModel.continueInstall()
     }
 
     func makeRow(dependency: OptionalDependencies.Dependency) -> Row {

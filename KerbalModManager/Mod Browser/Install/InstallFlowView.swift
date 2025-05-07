@@ -31,6 +31,28 @@ struct InstallFlowView: View {
                     
                 case .pickOptionalDependencies(let dependencies):
                     OptionalDependenciesPicker(dependencies: dependencies, shouldSkip: $skipOptionalDependencies)
+
+                case .installing:
+                    VStack {
+                        ProgressView()
+                        
+                        Text("Installing…")
+                    }
+                    .padding()
+                    .presentationSizing(.form)
+
+                case .done:
+                    VStack {
+                        Text("Install complete")
+
+                        Button("Dismiss") {
+                            model.stage = nil
+                        }
+                        .controlSize(.large)
+                        .keyboardShortcut(.defaultAction)
+                    }
+                    .padding()
+                    .presentationSizing(.form)
                 }
             }
         }

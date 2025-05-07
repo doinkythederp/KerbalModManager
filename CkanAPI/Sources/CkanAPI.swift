@@ -350,6 +350,49 @@ public actor CKANClient {
             for: instance.name, modules: modules, with: delegate)
     }
 
+    func performInstall(
+        for instanceName: String,
+        installing toInstall: Set<ReleaseId>,
+        removing toRemove: Set<ModuleId>,
+        replacing toReplace: Set<ModuleId>,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        logger.debug("Performing installation")
+
+        let message = Ckan_ActionMessage.with {
+            $0.registryPerformInstallRequest =
+                Ckan_RegistryPerformInstallRequest.with {
+                    $0.instanceName = instanceName
+                    $0.modsToInstall = toInstall.map(Ckan_ModuleReleaseRef.init)
+                    $0.modsToRemove = toRemove.map(\.value)
+                    $0.modsToReplace = toRemove.map(\.value)
+                }
+        }
+
+        let reply = try await performRegistryAction(message, with: delegate)
+
+        guard case .performInstall(_) = reply.results else {
+            throw CkanError.responseNotReceived
+        }
+    }
+
+    @MainActor
+    public func performInstall(
+        for instance: GameInstance,
+        installing toInstall: Set<ReleaseId>,
+        removing toRemove: Set<ModuleId>,
+        replacing toReplace: Set<ModuleId>,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        try await performInstall(
+            for: instance.name,
+            installing: toInstall,
+            removing: toRemove,
+            replacing: toReplace,
+            with: delegate
+        )
+    }
+
     deinit {
         self.grpcClient.beginGracefulShutdown()
     }

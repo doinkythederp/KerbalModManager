@@ -56,7 +56,7 @@ struct ConfirmInstallView: View {
                     dismiss()
                 }
                 Button("Confirm") {
-                    beginInstallation()
+                    performInstall()
                 }
                 .keyboardShortcut(.defaultAction)
 
@@ -65,6 +65,13 @@ struct ConfirmInstallView: View {
         }
         .padding()
         .presentationSizing(.form)
+    }
+
+    func performInstall() {
+        Task {
+            await state.installModel.performInstall(plan: state.changePlan, store: store)
+            state.changePlan.removeAll()
+        }
     }
 
     var changes: IdentifiedArrayOf<Change> {
@@ -101,18 +108,6 @@ struct ConfirmInstallView: View {
         state.instance
             .estimateNewDependencies(of: state.changePlan.pendingInstallation.keys)
             .count
-    }
-
-    func beginInstallation() {
-        Task {
-            do {
-                try await state.installModel.run(plan: state.changePlan, store: store)
-            } catch let error as CkanError {
-                store.showCkanError = true
-                store.ckanError = error
-                state.installModel.cancel()
-            }
-        }
     }
 
     struct Change: Identifiable {
