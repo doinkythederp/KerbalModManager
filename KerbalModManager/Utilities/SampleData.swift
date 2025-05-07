@@ -6,7 +6,7 @@
 //
 
 // This file contains sample data used by previews to help visualize UI during development of the app.
-// Sample data using real mods is sourced from NetKAN (https://github.com/KSP-CKAN/NetKAN), which
+// Sample data using real mods is sourced from NetKAN <https://github.com/KSP-CKAN/NetKAN>, which
 // is licensed under CC-0.
 
 import CkanAPI

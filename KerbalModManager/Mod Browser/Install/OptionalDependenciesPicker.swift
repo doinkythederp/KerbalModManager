@@ -38,20 +38,10 @@ struct OptionalDependenciesPicker: View {
 
             Table(of: Row.self, sortOrder: $sortOrder) {
                 TableColumn(Text("\(Image(systemSymbol: .arrowDownCircle))")) { row in
-                    let binding = Binding<Bool>(
-                        get: { selectedMods.contains(row.mod.id) },
-                        set: { selected in
-                            if selected {
-                                selectedMods.insert(row.mod.id)
-                            } else {
-                                selectedMods.remove(row.mod.id)
-                            }
-                        }
+                    OptionalDependencyInstallCheckbox(
+                        mod: row.mod.id,
+                        selectedMods: $selectedMods
                     )
-
-                    Toggle("Install", isOn: binding)
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .width(16)
 
@@ -133,6 +123,29 @@ struct OptionalDependenciesPicker: View {
         var release: CkanModule.Release {
             mod.module.releases[id: id] ?? mod.currentRelease
         }
+    }
+}
+
+private struct OptionalDependencyInstallCheckbox: View {
+    var mod: ModuleId
+    @Binding var selectedMods: Set<ModuleId>
+
+    @State private var checked = false
+
+    var body: some View {
+        Toggle("Install", isOn: $checked)
+            .labelsHidden()
+            .frame(maxWidth: .infinity, alignment: .center)
+            .onAppear {
+                checked = selectedMods.contains(mod)
+            }
+            .onChange(of: checked) {
+                if checked {
+                    selectedMods.insert(mod)
+                } else {
+                    selectedMods.remove(mod)
+                }
+            }
     }
 }
 

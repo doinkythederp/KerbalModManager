@@ -55,6 +55,39 @@ final class GUIInstance: Identifiable {
         return Set(byInstall + byReplace)
     }
 
+    /// Returns an estimate of the set of all the dependencies which installing this set of mods will also install.
+    ///
+    /// Does not handle version compatability.
+    func estimateNewDependencies(of mods: some Sequence<ModuleId>) -> Set<ModuleId> {
+        var dependencies: Set<ModuleId> = []
+
+        for id in mods {
+            visit(id: id, results: &dependencies)
+        }
+
+        dependencies.subtract(mods)
+        dependencies.subtract(installedModules.ids)
+
+        return dependencies
+
+        func visit(id: ModuleId, results: inout Set<ModuleId>) {
+            if results.contains(id) { return }
+            guard let mod = modules[id: id] else { return }
+
+            results.insert(mod.id)
+
+            let recursiveDependencies: [ModuleId] = mod.currentRelease.depends
+                .compactMap { relationship in
+                    guard case .direct(let direct) = relationship.type else { return nil }
+                    return direct.reference
+                }
+
+            for dependency in recursiveDependencies {
+                visit(id: dependency, results: &results)
+            }
+        }
+    }
+
     private(set) var insights = Insights()
 
     func copyDirectoryToPasteboard() {

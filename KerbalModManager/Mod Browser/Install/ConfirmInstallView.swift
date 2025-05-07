@@ -23,8 +23,20 @@ struct ConfirmInstallView: View {
                 "The following mods will be installed, upgraded, or removed:"
             )
 
-            List(changes) { change in
-                InstallListItem(change: change)
+            List {
+                ForEach(changes) { change in
+                    InstallListItem(change: change)
+                }
+
+                let newDependencyCount = self.newDependencyCount
+                if newDependencyCount > 0 {
+                    HStack(spacing: 20) {
+                        Image(systemSymbol: .plus)
+                        Text("About \(newDependencyCount) mods will be auto-installed.")
+                    }
+                    .padding(.horizontal)
+                    .foregroundStyle(.secondary)
+                }
             }
             .alternatingRowBackgrounds()
             .environment(\.defaultMinListRowHeight, 40)
@@ -84,7 +96,13 @@ struct ConfirmInstallView: View {
 
         return changes
     }
-    
+
+    var newDependencyCount: Int {
+        state.instance
+            .estimateNewDependencies(of: state.changePlan.pendingInstallation.keys)
+            .count
+    }
+
     func beginInstallation() {
         Task {
             do {
