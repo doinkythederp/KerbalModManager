@@ -1,4 +1,5 @@
 import AsyncAlgorithms
+import Foundation
 import Collections
 import GRPCCore
 import GRPCNIOTransportHTTP2TransportServices
@@ -8,17 +9,43 @@ public actor CKANClient {
     private var grpcClient: GRPCClient<HTTP2ClientTransport.TransportServices>
     private var ckanClient:
         Ckan_CKANServer.Client<HTTP2ClientTransport.TransportServices>
+    
+    private var subprocess: Process
 
     public init() {
+#if arch(arm64)
+        let serverDirUrl = Bundle.main.url(forAuxiliaryExecutable: "CKANServer-osx-arm64")!
+#elseif arch(x86_64)
+        let serverDirUrl = Bundle.main.url(forAuxiliaryExecutable: "CKANServer-osx-x86_64")!
+#else
+#error("Unsupoorted architecture")
+#endif
+        
+        let serverUrl = serverDirUrl.appending(path: "CKANServer").absoluteURL
+        let socketUrl = URL(filePath: "/tmp").appending(path: "ckan-server-\(UUID()).sock")
+        
+        subprocess = Process()
+        subprocess.executableURL = serverUrl.absoluteURL
+        subprocess.arguments = ["--urls", "http://unix:\(socketUrl.path())"]
+        subprocess.standardOutput = FileHandle.standardOutput
+        subprocess.standardError = FileHandle.standardError
+        try! subprocess.run()
+        
         grpcClient = GRPCClient(
             transport: try! .http2NIOTS(
-                target: .ipv4(host: "127.0.0.1", port: 31416),
+                target: .unixDomainSocket(path: socketUrl.path(), authority: "localhost"),
                 transportSecurity: .plaintext
             ))
         ckanClient = Ckan_CKANServer.Client(wrapping: grpcClient)
         Task {
             await startConnection()
         }
+    }
+    
+    deinit {
+        self.grpcClient.beginGracefulShutdown()
+        subprocess.terminate()
+        subprocess.waitUntilExit()
     }
 
     private func startConnection() async {
@@ -391,10 +418,6 @@ public actor CKANClient {
             replacing: toReplace,
             with: delegate
         )
-    }
-
-    deinit {
-        self.grpcClient.beginGracefulShutdown()
     }
 }
 

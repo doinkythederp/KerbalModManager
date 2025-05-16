@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		610D51682DD7B0D900DD019C /* CKANServer-osx-x64 in Copy Executables */ = {isa = PBXBuildFile; fileRef = 610D51672DD7B0D900DD019C /* CKANServer-osx-x64 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		610D516A2DD7B0E100DD019C /* CKANServer-osx-arm64 in Copy Executables */ = {isa = PBXBuildFile; fileRef = 610D51692DD7B0E100DD019C /* CKANServer-osx-arm64 */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F65555D62D97E693002DF306 /* WrappingHStack in Frameworks */ = {isa = PBXBuildFile; productRef = F65555D52D97E693002DF306 /* WrappingHStack */; };
 		F6758BD42D9137F20014836F /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = F6758BD32D9137F20014836F /* IdentifiedCollections */; };
 		F69344C52D768BCA00DDB88D /* CkanAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F69344C42D768BCA00DDB88D /* CkanAPI */; };
@@ -32,6 +34,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		610D4E242DD7AB3300DD019C /* Copy Executables */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				610D516A2DD7B0E100DD019C /* CKANServer-osx-arm64 in Copy Executables */,
+				610D51682DD7B0D900DD019C /* CKANServer-osx-x64 in Copy Executables */,
+			);
+			name = "Copy Executables";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F69344C62D768BCA00DDB88D /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,6 +60,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		610D51672DD7B0D900DD019C /* CKANServer-osx-x64 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "CKANServer-osx-x64"; path = "../../Library/Developer/Xcode/DerivedData/KerbalModManager-aeyudrxydgvuukejxfohfhhkewzw/Build/Products/Debug/CKANServer-osx-x64"; sourceTree = "<group>"; };
+		610D51692DD7B0E100DD019C /* CKANServer-osx-arm64 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "CKANServer-osx-arm64"; path = "../../Library/Developer/Xcode/DerivedData/KerbalModManager-aeyudrxydgvuukejxfohfhhkewzw/Build/Products/Debug/CKANServer-osx-arm64"; sourceTree = "<group>"; };
 		F69344942D768B2D00DDB88D /* KerbalModManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerbalModManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F69344A52D768B2F00DDB88D /* KerbalModManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerbalModManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F69344AF2D768B2F00DDB88D /* KerbalModManagerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KerbalModManagerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -107,6 +123,8 @@
 		F693448B2D768B2D00DDB88D = {
 			isa = PBXGroup;
 			children = (
+				610D51692DD7B0E100DD019C /* CKANServer-osx-arm64 */,
+				610D51672DD7B0D900DD019C /* CKANServer-osx-x64 */,
 				F693452B2D76A5C300DDB88D /* CKAN-Server */,
 				F69344C22D768B4200DDB88D /* CkanAPI */,
 				F69344962D768B2D00DDB88D /* KerbalModManager */,
@@ -141,8 +159,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F69344B92D768B2F00DDB88D /* Build configuration list for PBXNativeTarget "KerbalModManager" */;
 			buildPhases = (
+				610D4B292DD7A86300DD019C /* Build CKANServer */,
 				F69344902D768B2D00DDB88D /* Sources */,
 				F69344912D768B2D00DDB88D /* Frameworks */,
+				610D4E242DD7AB3300DD019C /* Copy Executables */,
 				F69344922D768B2D00DDB88D /* Resources */,
 				F69344C62D768BCA00DDB88D /* Embed Frameworks */,
 			);
@@ -282,6 +302,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		610D4B292DD7A86300DD019C /* Build CKANServer */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/CKAN-Server",
+			);
+			name = "Build CKANServer";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd CKAN-Server\nexport PATH=\"$HOME/.dotnet:$HOME/.dotnet/tools:$PATH\"\ndotnet publish CKANServer --sc -r osx-arm64 --output \"$BUILT_PRODUCTS_DIR/CKANServer-osx-arm64\"\ndotnet publish CKANServer --sc -r osx-x64 --output \"$BUILT_PRODUCTS_DIR/CKANServer-osx-x64\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F69344902D768B2D00DDB88D /* Sources */ = {
@@ -452,6 +495,7 @@
 				DEVELOPMENT_TEAM = 46T8W6J2U7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Kerbal Mod Manager";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
@@ -462,6 +506,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 0.1.0;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -482,6 +527,7 @@
 				DEVELOPMENT_TEAM = 46T8W6J2U7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Kerbal Mod Manager";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
@@ -492,6 +538,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 0.1.0;
+				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = me.lewismcclelland.KerbalModManager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
