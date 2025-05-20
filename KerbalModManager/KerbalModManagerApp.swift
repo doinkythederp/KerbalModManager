@@ -7,6 +7,7 @@
 
 import SwiftUI
 import os
+import CkanAPI
 
 let logger = Logger(
     subsystem: "me.lewismcclelland.KerbalModManager",
@@ -16,6 +17,7 @@ let logger = Logger(
 @main
 struct KerbalModManagerApp: App {
     @State private var store = Store()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
         WindowGroup {
@@ -28,5 +30,15 @@ struct KerbalModManagerApp: App {
             ModBrowserCommands()
         }
         .environment(store)
+        
+    }
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillTerminate(_ notification: Notification) {
+        for process in CKANClient.subprocesses {
+            logger.info("Terminating subprocess \(process.processIdentifier)")
+            process.terminate()
+        }
     }
 }

@@ -322,7 +322,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd CKAN-Server\nexport PATH=\"$HOME/.dotnet:$HOME/.dotnet/tools:$PATH\"\ndotnet publish CKANServer --sc -r osx-arm64 --output \"$BUILT_PRODUCTS_DIR/CKANServer-osx-arm64\"\ndotnet publish CKANServer --sc -r osx-x64 --output \"$BUILT_PRODUCTS_DIR/CKANServer-osx-x64\"\n";
+			shellScript = "cd CKAN-Server/CKANServer\n\nexport PATH=\"$HOME/.dotnet:$HOME/.dotnet/tools:$PATH\"\nunset TARGETNAME\n\ndotnet publish --sc -r osx-arm64 --output \"$BUILT_PRODUCTS_DIR/CKANServer-osx-arm64\"\ndotnet publish --sc -r osx-x64 --output \"$BUILT_PRODUCTS_DIR/CKANServer-osx-x64\"\n#cp -r \"bin/Release/net9.0/osx-arm64/publish/\" \"$BUILT_PRODUCTS_DIR/CKANServer-osx-arm64/\"\n#cp -r \"bin/Release/net9.0/osx-x64/publish/\" \"$BUILT_PRODUCTS_DIR/CKANServer-osx-x64/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

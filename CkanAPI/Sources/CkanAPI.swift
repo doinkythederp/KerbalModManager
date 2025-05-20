@@ -6,6 +6,8 @@ import GRPCNIOTransportHTTP2TransportServices
 import IdentifiedCollections
 
 public actor CKANClient {
+    @MainActor public static var subprocesses: Set<Process> = []
+    
     private var grpcClient: GRPCClient<HTTP2ClientTransport.TransportServices>
     private var ckanClient:
         Ckan_CKANServer.Client<HTTP2ClientTransport.TransportServices>
@@ -29,6 +31,14 @@ public actor CKANClient {
         subprocess.arguments = ["--urls", "http://unix:\(socketUrl.path())"]
         subprocess.standardOutput = FileHandle.standardOutput
         subprocess.standardError = FileHandle.standardError
+        
+        subprocess.environment = ProcessInfo.processInfo.environment
+        subprocess.environment?["Kestrel__EndpointDefaults__Protocols"] = "Http2"
+        
+#if DEBUG
+        subprocess.environment?["Logging__LogLevel__Default"] = "Trace"
+#endif
+        
         try! subprocess.run()
         
         grpcClient = GRPCClient(
@@ -37,15 +47,25 @@ public actor CKANClient {
                 transportSecurity: .plaintext
             ))
         ckanClient = Ckan_CKANServer.Client(wrapping: grpcClient)
+        
+        let subprocess = self.subprocess
+        Task { @MainActor in
+            CKANClient.subprocesses.insert(subprocess)
+        }
+        
         Task {
+            while !FileManager.default.fileExists(atPath: socketUrl.path()) {
+                try! await Task.sleep(for: .milliseconds(100))
+            }
             await startConnection()
         }
     }
     
     deinit {
-        self.grpcClient.beginGracefulShutdown()
-        subprocess.terminate()
-        subprocess.waitUntilExit()
+        let subprocess = self.subprocess
+        Task { @MainActor in
+            CKANClient.subprocesses.remove(subprocess)
+        }
     }
 
     private func startConnection() async {
@@ -55,6 +75,12 @@ public actor CKANClient {
             logger.error(
                 "Failed to start connection: \(error.localizedDescription)")
         }
+    }
+    
+    public func stop() {
+        self.grpcClient.beginGracefulShutdown()
+        subprocess.terminate()
+        subprocess.waitUntilExit()
     }
 
     func performAction<T: Sendable>(

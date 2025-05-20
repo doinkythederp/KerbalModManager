@@ -9,6 +9,7 @@ import CkanAPI
 import Collections
 import Foundation
 import IdentifiedCollections
+import AppKit
 
 @MainActor @Observable final class Store {
     var instances: IdentifiedArrayOf<GUIInstance> = []
@@ -65,6 +66,4 @@ import IdentifiedCollections
         
         instance.refreshInsights()
     }
-
-    init() {}
 }
