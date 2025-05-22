@@ -11,3 +11,7 @@ import CkanAPI
 extension EnvironmentValues {
     @Entry var ckanActionDelegate: CkanActionDelegate = EmptyCkanActionDelegate()
 }
+
+enum AppStorageKey {
+    static let skipOptionalDependencies = "SkipOptionalDependencies"
+}

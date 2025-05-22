@@ -40,5 +40,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             logger.info("Terminating subprocess \(process.processIdentifier)")
             process.terminate()
         }
+        
+        for process in CKANClient.subprocesses {
+            process.waitUntilExit()
+        }
     }
 }

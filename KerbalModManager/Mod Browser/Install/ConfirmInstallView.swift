@@ -69,8 +69,7 @@ struct ConfirmInstallView: View {
 
     func performInstall() {
         Task {
-            await state.installModel.performInstall(plan: state.changePlan, store: store)
-            state.changePlan.removeAll()
+            await state.installModel.performInstall(state: state, store: store)
         }
     }
 

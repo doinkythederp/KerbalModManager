@@ -16,7 +16,7 @@ struct InstallFlowView: View {
 
     @Environment(ModBrowserState.self) private var state
 
-    @AppStorage("ShowOptionalDependencies")
+    @AppStorage(AppStorageKey.skipOptionalDependencies)
     private var skipOptionalDependencies = false
 
     var body: some View {

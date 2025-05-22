@@ -36,6 +36,10 @@ struct ModBrowser: View {
                 .padding()
                 .presentationSizing(.form)
             }
+            // show sheet when install stage is set
+            .sheet(item: $state.installModel.stage) { stage in
+                InstallFlowView(model: state.installModel, stage: stage)
+            }
             .task {
                 await loadData()
             }
@@ -46,6 +50,8 @@ struct ModBrowser: View {
         do {
             showLoading = true
             loadProgress = 0
+            
+            try await store.client.updateRegistry(for: instance.ckan, with: self)
 
             if !instance.hasPrepopulatedRegistry {
                 try await store.client.prepopulateRegistry(

@@ -248,6 +248,34 @@ public actor CKANClient {
             throw CkanError.unknownError(source: error)
         }
     }
+    
+    public func addInstance(name: String, url: URL, with delegate: CkanActionDelegate) async throws(CkanError) {
+        assert(url.isFileURL)
+        
+        let path = url.absoluteURL.path()
+        let message = Ckan_ActionMessage.with {
+            $0.instanceAddRequest = Ckan_InstanceAddRequest.with {
+                $0.name = name
+                $0.directory = path
+            }
+        }
+        
+        let reply = try await performAction(message, with: delegate) { status in
+            return if case .instanceOperationReply(let ior) = status {
+                ior
+            } else {
+                nil
+            }
+        }
+        
+        guard let reply = reply.first else {
+            throw CkanError.responseNotReceived
+        }
+        
+        guard reply.result == .iorSuccess else {
+            throw CkanError(instance: reply)
+        }
+    }
 
     func prepopulateRegistry(
         forName instanceName: String,
@@ -442,6 +470,40 @@ public actor CKANClient {
             installing: toInstall,
             removing: toRemove,
             replacing: toReplace,
+            with: delegate
+        )
+    }
+    
+    func updateRegistry(
+        for instanceName: String,
+        force: Bool,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        logger.debug("Updating registry")
+        
+        let message = Ckan_ActionMessage.with {
+            $0.registryUpdateRequest =
+            Ckan_RegistryUpdateRequest.with {
+                $0.instanceName = instanceName
+            }
+        }
+        
+        let reply = try await performRegistryAction(message, with: delegate)
+        
+        guard case .update(_) = reply.results else {
+            throw CkanError.responseNotReceived
+        }
+    }
+    
+    @MainActor
+    public func updateRegistry(
+        for instance: GameInstance,
+        force: Bool = false,
+        with delegate: CkanActionDelegate
+    ) async throws(CkanError) {
+        try await updateRegistry(
+            for: instance.name,
+            force: force,
             with: delegate
         )
     }

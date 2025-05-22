@@ -52,18 +52,16 @@ struct ModBrowserToolbar: ToolbarContent {
                 }
             }
         }
+        
+        @Bindable var state = state
 
         ToolbarItemGroup(placement: .primaryAction) {
             Group {
-                @Bindable var state = state
-
                 Button("Apply Changes", systemSymbol: .checkmarkRectangleStack) {
                     state.installModel.showPendingChanges()
                 }
-                // show sheet when install stage is set
-                .sheet(item: $state.installModel.stage) { stage in
-                    InstallFlowView(model: state.installModel, stage: stage)
-                }
+                .tint(.green)
+                .labelStyle(.titleAndIcon)
 
                 Button(
                     "Discard Changes",
@@ -73,7 +71,9 @@ struct ModBrowserToolbar: ToolbarContent {
                     state.changePlan = ModuleChangePlan()
                 }
                 .help("Discard all pending changes")
+                .tint(.red)
             }
+            .buttonStyle(.borderedProminent)
             .disabled(state.changePlan.isEmpty)
 
             Menu {

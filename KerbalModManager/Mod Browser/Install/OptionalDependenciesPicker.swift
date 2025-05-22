@@ -55,33 +55,39 @@ struct OptionalDependenciesPicker: View {
                     )
                 }
             } rows: {
-                Section("Recommended") {
-                    ForEach(
-                        dependencies.recommended
-                            .map(makeRow)
-                            .sorted(using: sortOrder)
-                    ) { row in
-                        TableRow(row)
+                if !dependencies.recommended.isEmpty {
+                    Section("Recommended") {
+                        ForEach(
+                            dependencies.recommended
+                                .map(makeRow)
+                                .sorted(using: sortOrder)
+                        ) { row in
+                            TableRow(row)
+                        }
                     }
                 }
 
-                Section("Suggested") {
-                    ForEach(
-                        dependencies.suggested
-                            .map(makeRow)
-                            .sorted(using: sortOrder)
-                    ) { row in
-                        TableRow(row)
+                if !dependencies.suggested.isEmpty {
+                    Section("Suggested") {
+                        ForEach(
+                            dependencies.suggested
+                                .map(makeRow)
+                                .sorted(using: sortOrder)
+                        ) { row in
+                            TableRow(row)
+                        }
                     }
                 }
 
-                Section("Supported") {
-                    ForEach(
-                        dependencies.supporters
-                            .map(makeRow)
-                            .sorted(using: sortOrder)
-                    ) { row in
-                        TableRow(row)
+                if !dependencies.supporters.isEmpty {
+                    Section("Supported") {
+                        ForEach(
+                            dependencies.supporters
+                                .map(makeRow)
+                                .sorted(using: sortOrder)
+                        ) { row in
+                            TableRow(row)
+                        }
                     }
                 }
             }

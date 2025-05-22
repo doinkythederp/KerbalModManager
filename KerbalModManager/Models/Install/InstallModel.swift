@@ -7,6 +7,7 @@
 
 import CkanAPI
 import Observation
+import Foundation
 
 @MainActor
 @Observable
@@ -22,10 +23,10 @@ final class InstallModel {
         stage = .pending
     }
 
-    func performInstall(plan: ModuleChangePlan, store: Store) async {
+    func performInstall(state: ModBrowserState, store: Store) async {
         do {
             installTask = Task {
-                try await run(plan: plan, store: store)
+                try await run(state: state, store: store)
             }
 
             try await installTask?.value
@@ -50,8 +51,10 @@ final class InstallModel {
         continuation = nil
     }
 
-    func run(plan: ModuleChangePlan, store: Store) async throws {
+    func run(state: ModBrowserState, store: Store) async throws {
         logger.info("Install task: Beginning install plan")
+        
+        let plan = state.changePlan
 
         let optionalDeps = try await store.client.resolveOptionalDependencies(
             for: instance.ckan,
@@ -65,13 +68,17 @@ final class InstallModel {
             "Install task: Discovered optional dependencies for install plan: \(optionalDeps.recommended.count) recommended, \(optionalDeps.suggested.count) suggested, \(optionalDeps.supporters.count) supporters"
         )
 
-        // Wait for user to pick optional deps
-        await withCheckedContinuation { continuation in
-            self.continuation = continuation
-            stage = .pickOptionalDependencies(optionalDeps)
-        }
+        let skipOptionalDeps = UserDefaults.standard.bool(forKey: AppStorageKey.skipOptionalDependencies)
+        
+        if !optionalDeps.isEmpty && !skipOptionalDeps {
+            // Wait for user to pick optional deps
+            await withCheckedContinuation { continuation in
+                self.continuation = continuation
+                stage = .pickOptionalDependencies(optionalDeps)
+            }
 
-        try Task.checkCancellation()
+            try Task.checkCancellation()
+        }
 
         stage = .installing
         
@@ -84,6 +91,8 @@ final class InstallModel {
             with: EmptyCkanActionDelegate())
 
         logger.info("Install task: Refreshing module state")
+        
+        state.changePlan.removeAll()
 
         try await store.refreshModuleStates(for: instance, with: EmptyCkanActionDelegate())
 
